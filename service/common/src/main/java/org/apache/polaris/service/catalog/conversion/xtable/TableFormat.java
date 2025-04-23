@@ -16,33 +16,31 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.polaris.service.catalog.conversion.xtable;
 
 import com.google.common.base.Preconditions;
 import java.util.Locale;
 
 public enum TableFormat {
+  HUDI("HUDI"),
 
-    HUDI("HUDI"),
+  ICEBERG("ICEBERG"),
 
-    ICEBERG("ICEBERG"),
+  DELTA("DELTA");
 
-    DELTA("DELTA");
+  private final String tableFormat;
 
-    private final String tableFormat;
-
-    TableFormat(String tableFormat) {
-        this.tableFormat = tableFormat;
-    }
+  TableFormat(String tableFormat) {
+    this.tableFormat = tableFormat;
+  }
 
   public static TableFormat fromName(String tableFormat) {
-        Preconditions.checkArgument(tableFormat != null, "tableFormat is null");
-        try {
-          return TableFormat.valueOf(tableFormat.toUpperCase(Locale.ENGLISH));
-        } catch (IllegalArgumentException e) {
-          throw new UnsupportedOperationException(
-              String.format("Unsupported tableFormat: %s", tableFormat), e);
-        }
+    Preconditions.checkArgument(tableFormat != null, "tableFormat is null");
+    try {
+      return TableFormat.valueOf(tableFormat.toUpperCase(Locale.ENGLISH));
+    } catch (IllegalArgumentException e) {
+      throw new UnsupportedOperationException(
+          String.format("Unsupported tableFormat: %s", tableFormat), e);
     }
+  }
 }

@@ -16,28 +16,27 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.polaris.service.catalog.conversion.xtable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class RunSyncResponse {
-    @JsonProperty("target-format")
-    private String targetFormat;
+  @JsonProperty("target-format")
+  private String targetFormat;
 
-    @JsonProperty("target-metadata-path")
-    private String targetMetadataPath;
+  @JsonProperty("target-metadata-path")
+  private String targetMetadataPath;
 
-    public RunSyncResponse(String targetFormat, String targetMetadataPath) {
-        this.targetFormat = targetFormat;
-        this.targetMetadataPath = targetMetadataPath;
-    }
+  public RunSyncResponse(String targetFormat, String targetMetadataPath) {
+    this.targetFormat = targetFormat;
+    this.targetMetadataPath = targetMetadataPath;
+  }
 
-    public String getTargetFormat() {
-        return targetFormat;
-    }
+  public String getTargetFormat() {
+    return targetFormat;
+  }
 
-    public String getTargetMetadataPath() {
-        return targetMetadataPath;
-    }
+  public String getTargetMetadataPath() {
+    return targetMetadataPath;
+  }
 }

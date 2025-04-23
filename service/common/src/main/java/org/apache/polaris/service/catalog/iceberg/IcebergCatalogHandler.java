@@ -18,6 +18,8 @@
  */
 package org.apache.polaris.service.catalog.iceberg;
 
+import static org.apache.polaris.service.catalog.conversion.xtable.XTableConvertorConfigurations.TARGET_FORMAT_METADATA_PATH_KEY;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import jakarta.ws.rs.core.SecurityContext;
@@ -94,8 +96,6 @@ import org.apache.polaris.service.http.IfNoneMatch;
 import org.apache.polaris.service.types.NotificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.apache.polaris.service.catalog.conversion.xtable.XTableConvertorConfigurations.TARGET_FORMAT_METADATA_PATH_KEY;
 
 /**
  * Authorization-aware adapter between REST stubs and shared Iceberg SDK CatalogHandlers.
@@ -279,12 +279,16 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
     if (isExternal(catalog)) {
       throw new BadRequestException("Cannot create table on external catalogs.");
     }
-    //TODO check to see if we will need do this in createTableWriteDelegation, createTableStaged, etc
+    // TODO check to see if we will need do this in createTableWriteDelegation, createTableStaged,
+    // etc
     LoadTableResponse response = CatalogHandlers.createTable(baseCatalog, namespace, request);
     if (XTableConversionUtils.requiresConversion(callContext, response.config())) {
-      XTableConverter converter = new XTableConverter(XTableConversionUtils.getHostUrl(callContext));
+      XTableConverter converter =
+          new XTableConverter(XTableConversionUtils.getHostUrl(callContext));
       RunSyncResponse runSyncResponse = converter.execute(new IcebergTableLikeEntity(catalog));
-      response.config().put(TARGET_FORMAT_METADATA_PATH_KEY, runSyncResponse.getTargetMetadataPath());
+      response
+          .config()
+          .put(TARGET_FORMAT_METADATA_PATH_KEY, runSyncResponse.getTargetMetadataPath());
     }
     return response;
   }
@@ -541,11 +545,18 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
       }
     }
 
-    Optional<LoadTableResponse> optionalLoadTableResponse = Optional.of(CatalogHandlers.loadTable(baseCatalog, tableIdentifier));
-    if (tableEntity != null && XTableConversionUtils.requiresConversion(callContext, optionalLoadTableResponse.get().config())) {
-      XTableConverter converter = new XTableConverter(XTableConversionUtils.getHostUrl(callContext));
+    Optional<LoadTableResponse> optionalLoadTableResponse =
+        Optional.of(CatalogHandlers.loadTable(baseCatalog, tableIdentifier));
+    if (tableEntity != null
+        && XTableConversionUtils.requiresConversion(
+            callContext, optionalLoadTableResponse.get().config())) {
+      XTableConverter converter =
+          new XTableConverter(XTableConversionUtils.getHostUrl(callContext));
       RunSyncResponse runSyncResponse = converter.execute(tableEntity);
-      optionalLoadTableResponse.get().config().put(TARGET_FORMAT_METADATA_PATH_KEY, runSyncResponse.getTargetMetadataPath());
+      optionalLoadTableResponse
+          .get()
+          .config()
+          .put(TARGET_FORMAT_METADATA_PATH_KEY, runSyncResponse.getTargetMetadataPath());
     }
     return optionalLoadTableResponse;
   }

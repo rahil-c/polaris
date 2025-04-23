@@ -193,18 +193,18 @@ public class FeatureConfiguration<T> extends PolarisConfiguration<T> {
           .buildFeatureConfiguration();
 
   public static final FeatureConfiguration<Boolean> ENABLE_XTABLE_REST_SERVICE =
-          PolarisConfiguration.<Boolean>builder()
-                  .key("ENABLE_XTABLE_REST_SERVICE")
-                  .description("If true, delegates table metadata conversion to an external XTable REST Service")
-                  .defaultValue(true)
-                  .buildFeatureConfiguration();
-
+      PolarisConfiguration.<Boolean>builder()
+          .key("ENABLE_XTABLE_REST_SERVICE")
+          .description(
+              "If true, delegates table metadata conversion to an external XTable REST Service")
+          .defaultValue(true)
+          .buildFeatureConfiguration();
 
   public static final FeatureConfiguration<String> XTABLE_REST_SERVICE_HOST_URL =
-          PolarisConfiguration.<String>builder()
-                  .key("XTABLE_REST_SERVICE_HOST_URL")
-                  .description("The host url where the XTable REST Service is running")
-                  .buildFeatureConfiguration();
+      PolarisConfiguration.<String>builder()
+          .key("XTABLE_REST_SERVICE_HOST_URL")
+          .description("The host url where the XTable REST Service is running")
+          .buildFeatureConfiguration();
 
   public static final FeatureConfiguration<Long> ENTITY_CACHE_WEIGHER_TARGET =
       PolarisConfiguration.<Long>builder()

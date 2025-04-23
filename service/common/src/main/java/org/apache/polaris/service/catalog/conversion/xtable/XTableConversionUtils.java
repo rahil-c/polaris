@@ -16,37 +16,37 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.polaris.service.catalog.conversion.xtable;
-
-import org.apache.polaris.core.config.FeatureConfiguration;
-import org.apache.polaris.core.context.CallContext;
-
-import java.util.Map;
 
 import static org.apache.polaris.service.catalog.conversion.xtable.XTableConvertorConfigurations.ENABLED_READ_TABLE_FORMATS_KEY;
 import static org.apache.polaris.service.catalog.conversion.xtable.XTableConvertorConfigurations.SOURCE_METADATA_PATH_KEY;
 
+import java.util.Map;
+import org.apache.polaris.core.config.FeatureConfiguration;
+import org.apache.polaris.core.context.CallContext;
+
 public class XTableConversionUtils {
 
-    private XTableConversionUtils() {}
+  private XTableConversionUtils() {}
 
-    public static boolean requiresConversion(CallContext context, Map<String, String> tableProperties) {
-        boolean conversionServiceEnabled =
-                context.getPolarisCallContext()
-                        .getConfigurationStore()
-                        .getConfiguration(
-                                context.getPolarisCallContext(), FeatureConfiguration.ENABLE_XTABLE_REST_SERVICE);
-        return conversionServiceEnabled
-                && tableProperties.containsKey(ENABLED_READ_TABLE_FORMATS_KEY)
-                && tableProperties.containsKey(SOURCE_METADATA_PATH_KEY);
-    }
+  public static boolean requiresConversion(
+      CallContext context, Map<String, String> tableProperties) {
+    boolean conversionServiceEnabled =
+        context
+            .getPolarisCallContext()
+            .getConfigurationStore()
+            .getConfiguration(
+                context.getPolarisCallContext(), FeatureConfiguration.ENABLE_XTABLE_REST_SERVICE);
+    return conversionServiceEnabled
+        && tableProperties.containsKey(ENABLED_READ_TABLE_FORMATS_KEY)
+        && tableProperties.containsKey(SOURCE_METADATA_PATH_KEY);
+  }
 
-    public static String getHostUrl(CallContext context) {
-        return context
-                .getPolarisCallContext()
-                .getConfigurationStore()
-                .getConfiguration(
-                        context.getPolarisCallContext(), FeatureConfiguration.XTABLE_REST_SERVICE_HOST_URL);
-    }
+  public static String getHostUrl(CallContext context) {
+    return context
+        .getPolarisCallContext()
+        .getConfigurationStore()
+        .getConfiguration(
+            context.getPolarisCallContext(), FeatureConfiguration.XTABLE_REST_SERVICE_HOST_URL);
+  }
 }

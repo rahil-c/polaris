@@ -18,6 +18,8 @@
  */
 package org.apache.polaris.service.catalog.generic;
 
+import static org.apache.polaris.service.catalog.conversion.xtable.XTableConvertorConfigurations.TARGET_FORMAT_METADATA_PATH_KEY;
+
 import jakarta.ws.rs.core.SecurityContext;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -38,8 +40,6 @@ import org.apache.polaris.service.catalog.conversion.xtable.XTableConverter;
 import org.apache.polaris.service.types.GenericTable;
 import org.apache.polaris.service.types.ListGenericTablesResponse;
 import org.apache.polaris.service.types.LoadGenericTableResponse;
-
-import static org.apache.polaris.service.catalog.conversion.xtable.XTableConvertorConfigurations.TARGET_FORMAT_METADATA_PATH_KEY;
 
 public class GenericTableCatalogHandler extends CatalogHandler {
 
@@ -100,9 +100,12 @@ public class GenericTableCatalogHandler extends CatalogHandler {
             createdEntity.getDoc(),
             createdEntity.getPropertiesAsMap());
     if (XTableConversionUtils.requiresConversion(callContext, properties)) {
-      XTableConverter converter = new XTableConverter(XTableConversionUtils.getHostUrl(callContext));
+      XTableConverter converter =
+          new XTableConverter(XTableConversionUtils.getHostUrl(callContext));
       RunSyncResponse runSyncResponse = converter.execute(createdEntity);
-      createdTable.getProperties().put(TARGET_FORMAT_METADATA_PATH_KEY, runSyncResponse.getTargetMetadataPath());
+      createdTable
+          .getProperties()
+          .put(TARGET_FORMAT_METADATA_PATH_KEY, runSyncResponse.getTargetMetadataPath());
     }
     return LoadGenericTableResponse.builder().setTable(createdTable).build();
   }
@@ -127,9 +130,12 @@ public class GenericTableCatalogHandler extends CatalogHandler {
             loadedEntity.getPropertiesAsMap());
 
     if (XTableConversionUtils.requiresConversion(callContext, loadedTable.getProperties())) {
-      XTableConverter converter = new XTableConverter(XTableConversionUtils.getHostUrl(callContext));
+      XTableConverter converter =
+          new XTableConverter(XTableConversionUtils.getHostUrl(callContext));
       RunSyncResponse runSyncResponse = converter.execute(loadedEntity);
-      loadedTable.getProperties().put(TARGET_FORMAT_METADATA_PATH_KEY, runSyncResponse.getTargetMetadataPath());
+      loadedTable
+          .getProperties()
+          .put(TARGET_FORMAT_METADATA_PATH_KEY, runSyncResponse.getTargetMetadataPath());
     }
     return LoadGenericTableResponse.builder().setTable(loadedTable).build();
   }

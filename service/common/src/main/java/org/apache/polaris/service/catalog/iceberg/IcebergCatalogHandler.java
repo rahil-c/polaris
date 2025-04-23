@@ -18,6 +18,8 @@
  */
 package org.apache.polaris.service.catalog.iceberg;
 
+import static org.apache.polaris.service.catalog.conversion.xtable.XTableConvertorConfigurations.TARGET_FORMAT_METADATA_PATH_KEY;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import jakarta.annotation.Nonnull;
@@ -84,6 +86,7 @@ import org.apache.polaris.core.connection.iceberg.IcebergRestConnectionConfigInf
 import org.apache.polaris.core.context.CallContext;
 import org.apache.polaris.core.entity.CatalogEntity;
 import org.apache.polaris.core.entity.PolarisEntitySubType;
+import org.apache.polaris.core.entity.table.GenericTableEntity;
 import org.apache.polaris.core.entity.table.IcebergTableLikeEntity;
 import org.apache.polaris.core.persistence.PolarisEntityManager;
 import org.apache.polaris.core.persistence.PolarisMetaStoreManager;
@@ -97,6 +100,9 @@ import org.apache.polaris.core.storage.AccessConfig;
 import org.apache.polaris.core.storage.PolarisStorageActions;
 import org.apache.polaris.service.catalog.SupportsNotifications;
 import org.apache.polaris.service.catalog.common.CatalogHandler;
+import org.apache.polaris.service.catalog.conversion.xtable.RemoteXTableConvertor;
+import org.apache.polaris.service.catalog.conversion.xtable.XTableConversionUtils;
+import org.apache.polaris.service.catalog.conversion.xtable.models.ConvertTableResponse;
 import org.apache.polaris.service.config.ReservedProperties;
 import org.apache.polaris.service.context.catalog.CallContextCatalogFactory;
 import org.apache.polaris.service.http.IcebergHttpUtil;
@@ -251,6 +257,7 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
     this.namespaceCatalog =
         (baseCatalog instanceof SupportsNamespaces) ? (SupportsNamespaces) baseCatalog : null;
     this.viewCatalog = (baseCatalog instanceof ViewCatalog) ? (ViewCatalog) baseCatalog : null;
+    initializeConversionServiceIfEnabled();
   }
 
   public ListNamespacesResponse listNamespaces(Namespace parent) {
@@ -393,8 +400,10 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
             .withWriteOrder(request.writeOrder())
             .setProperties(reservedProperties.removeReservedProperties(request.properties()))
             .build();
-    return catalogHandlerUtils.createTable(
-        baseCatalog, namespace, requestWithoutReservedProperties);
+
+    LoadTableResponse response =
+        catalogHandlerUtils.createTable(baseCatalog, namespace, requestWithoutReservedProperties);
+    return response;
   }
 
   /**
@@ -626,12 +635,19 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
   public Optional<LoadTableResponse> loadTableIfStale(
       TableIdentifier tableIdentifier, IfNoneMatch ifNoneMatch, String snapshots) {
     PolarisAuthorizableOperation op = PolarisAuthorizableOperation.LOAD_TABLE;
-    authorizeBasicTableLikeOperationOrThrow(
-        op, PolarisEntitySubType.ICEBERG_TABLE, tableIdentifier);
 
+    try {
+      authorizeBasicTableLikeOperationOrThrow(
+              op, PolarisEntitySubType.ICEBERG_TABLE, tableIdentifier);
+    } catch (NoSuchTableException e) {
+      authorizeBasicTableLikeOperationOrThrow(
+              op, PolarisEntitySubType.GENERIC_TABLE, tableIdentifier);
+    }
+
+    IcebergTableLikeEntity tableEntity = null;
     if (ifNoneMatch != null) {
       // Perform freshness-aware table loading if caller specified ifNoneMatch.
-      IcebergTableLikeEntity tableEntity = getTableEntity(tableIdentifier);
+      tableEntity = getTableEntity(tableIdentifier);
       if (tableEntity == null || tableEntity.getMetadataLocation() == null) {
         LOGGER
             .atWarn()
@@ -649,8 +665,55 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
       }
     }
 
+    Optional<LoadTableResponse> maybeConversionResponse =
+            loadTableViaGenericTableIfApplicable(tableIdentifier);
+    if (maybeConversionResponse.isPresent()) {
+      return maybeConversionResponse;
+    }
+
     LoadTableResponse rawResponse = catalogHandlerUtils.loadTable(baseCatalog, tableIdentifier);
-    return Optional.of(filterResponseToSnapshots(rawResponse, snapshots));
+    Optional<LoadTableResponse> optionalLoadTableResponse =
+            Optional.of(filterResponseToSnapshots(rawResponse, snapshots));
+    return optionalLoadTableResponse;
+
+  }
+
+  private Optional<LoadTableResponse> loadTableViaGenericTableIfApplicable(
+          TableIdentifier tableIdentifier) {
+    if (!XTableConversionUtils.requiresConversion(callContext)) {
+      return Optional.empty();
+    }
+    PolarisResolvedPathWrapper target = resolutionManifest.getResolvedPath(tableIdentifier);
+    GenericTableEntity tableLikeEntity = GenericTableEntity.of(target.getRawLeafEntity());
+    if (tableLikeEntity == null) {
+      return Optional.empty();
+    } else if (tableLikeEntity.getSubType() == PolarisEntitySubType.GENERIC_TABLE) {
+      RemoteXTableConvertor remoteXTableConvertor = RemoteXTableConvertor.getInstance();
+      Optional<ConvertTableResponse> optionalConvertTableResponse = Optional.ofNullable(remoteXTableConvertor.execute(tableLikeEntity));
+      if (optionalConvertTableResponse.isEmpty()) {
+          return Optional.empty();
+      } else {
+          String icebergMetadataLocation =
+                  optionalConvertTableResponse
+                          .get()
+                          .getConvertedTables()
+                          .get(0)
+                          .getTargetMetadataPath();
+          if (icebergMetadataLocation == null) {
+            LOGGER.debug("Received a null metadata location after table conversion");
+            return Optional.empty();
+          } else {
+            if (baseCatalog instanceof IcebergCatalog icebergCatalog) {
+              TableMetadata tableMetadata = icebergCatalog.loadTableUnsafe(icebergMetadataLocation);
+              return Optional.of(
+                      LoadTableResponse.builder().withTableMetadata(tableMetadata).build());
+            } else {
+              return Optional.empty();
+            }
+          }
+        }
+      }
+      return Optional.empty();
   }
 
   public LoadTableResponse loadTableWithAccessDelegation(
@@ -691,6 +754,9 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
     } catch (ForbiddenException e) {
       authorizeBasicTableLikeOperationOrThrow(
           read, PolarisEntitySubType.ICEBERG_TABLE, tableIdentifier);
+    } catch (NoSuchTableException e) {
+      authorizeBasicTableLikeOperationOrThrow(
+              read, PolarisEntitySubType.GENERIC_TABLE, tableIdentifier);
     }
 
     PolarisResolvedPathWrapper catalogPath = resolutionManifest.getResolvedReferenceCatalogEntity();
@@ -707,7 +773,7 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
         configurationStore.getConfiguration(
             callContext.getRealmContext(),
             catalogEntity,
-            FeatureConfiguration.ALLOW_EXTERNAL_CATALOG_CREDENTIAL_VENDING));
+            FeatureConfiguration.ALLOW_EXTERNAL_CATALOG_CREDENTIAL_VENDING)); // TODO NOT SURE IF THIS WILL WORK
     if (catalogEntity
             .getCatalogType()
             .equals(org.apache.polaris.core.admin.model.Catalog.TypeEnum.EXTERNAL)
@@ -721,9 +787,9 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
           FeatureConfiguration.ALLOW_EXTERNAL_CATALOG_CREDENTIAL_VENDING.catalogConfig());
     }
 
+    IcebergTableLikeEntity tableEntity = getTableEntity(tableIdentifier);
     if (ifNoneMatch != null) {
       // Perform freshness-aware table loading if caller specified ifNoneMatch.
-      IcebergTableLikeEntity tableEntity = getTableEntity(tableIdentifier);
       if (tableEntity == null || tableEntity.getMetadataLocation() == null) {
         LOGGER
             .atWarn()
@@ -741,16 +807,24 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
       }
     }
 
+    Optional<LoadTableResponse> maybeConversionResponse =
+            loadTableViaGenericTableIfApplicable(tableIdentifier);
+    if (maybeConversionResponse.isPresent()) {
+      return maybeConversionResponse;
+    }
+
     // TODO: Find a way for the configuration or caller to better express whether to fail or omit
     // when data-access is specified but access delegation grants are not found.
     Table table = baseCatalog.loadTable(tableIdentifier);
 
     if (table instanceof BaseTable baseTable) {
       TableMetadata tableMetadata = baseTable.operations().current();
-      return Optional.of(
-          buildLoadTableResponseWithDelegationCredentials(
-                  tableIdentifier, tableMetadata, actionsRequested, snapshots)
-              .build());
+      Optional<LoadTableResponse> optionalLoadTableResponse =
+          Optional.of(
+              buildLoadTableResponseWithDelegationCredentials(
+                      tableIdentifier, tableMetadata, actionsRequested, snapshots)
+                  .build());
+      return optionalLoadTableResponse;
     } else if (table instanceof BaseMetadataTable) {
       // metadata tables are loaded on the client side, return NoSuchTableException for now
       throw new NoSuchTableException("Table does not exist: %s", tableIdentifier.toString());

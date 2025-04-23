@@ -261,6 +261,11 @@ public class IcebergCatalog extends BaseMetastoreViewCatalog
 
     tableDefaultProperties =
         PropertyUtil.propertiesWithPrefix(properties, CatalogProperties.TABLE_DEFAULT_PREFIX);
+    this.catalogFileIO = loadFileIO(ioImplClassName, properties);
+    if (this.catalogFileIO == null) {
+      LOGGER.error("Failed to initialize catalogFileIO");
+    }
+
   }
 
   public void setMetaStoreManager(PolarisMetaStoreManager newMetaStoreManager) {
@@ -1165,6 +1170,13 @@ public class IcebergCatalog extends BaseMetastoreViewCatalog
                     targetLocation, siblingLocation);
               }
             });
+  }
+
+  public TableMetadata loadTableUnsafe(String metadataLocation) {
+    if (this.catalogFileIO == null) {
+      throw new IllegalStateException("Catalog was not properly initialized");
+    }
+    return TableMetadataParser.read(this.catalogFileIO, metadataLocation);
   }
 
   private class PolarisIcebergCatalogTableBuilder

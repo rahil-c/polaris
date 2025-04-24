@@ -22,7 +22,6 @@ import static org.apache.polaris.service.catalog.conversion.xtable.XTableConvert
 import static org.apache.polaris.service.catalog.conversion.xtable.XTableConvertorConfigurations.SOURCE_METADATA_PATH_KEY;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -33,28 +32,40 @@ import org.apache.polaris.core.entity.table.IcebergTableLikeEntity;
 import org.apache.polaris.core.entity.table.TableLikeEntity;
 
 public final class XTableConverter {
-  private static final int SUCCESS_STATUS_CODE = 200;
+  private static final int HTTP_SUCCESS_START = 200;
+  private static final int HTTP_SUCCESS_END = 299;
   private static final String RUN_SYNC_ENDPOINT = "/v1/conversion/sync";
 
+  private static XTableConverter INSTANCE;
   private final String hostUrl;
   private final HttpClient client;
-  private final ObjectMapper objectMapper;
+  private final ObjectMapper mapper;
 
-  public XTableConverter(String hostUrl) {
-    this.hostUrl = hostUrl;
-    this.client =
-        HttpClient.newBuilder()
-            .version(HttpClient.Version.HTTP_2)
-            .followRedirects(HttpClient.Redirect.NORMAL)
-            .build();
-    this.objectMapper = new ObjectMapper();
-  }
-
-  @VisibleForTesting
-  XTableConverter(String hostUrl, HttpClient client, ObjectMapper objectMapper) {
+  private XTableConverter(String hostUrl, HttpClient client, ObjectMapper mapper) {
+    if (hostUrl == null || hostUrl.isBlank()) {
+      throw new IllegalArgumentException("hostUrl must be provided");
+    }
     this.hostUrl = hostUrl;
     this.client = client;
-    this.objectMapper = objectMapper;
+    this.mapper = mapper;
+  }
+
+  public static void initialize(String hostUrl) {
+    if (INSTANCE != null) {
+      throw new IllegalStateException("XTableConverter already initialized");
+    }
+    INSTANCE =
+        new XTableConverter(
+            hostUrl,
+            HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_2)
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .build(),
+            new ObjectMapper());
+  }
+
+  public static XTableConverter getInstance() {
+    return INSTANCE;
   }
 
   public RunSyncResponse execute(TableLikeEntity tableEntity) {
@@ -90,7 +101,7 @@ public final class XTableConverter {
 
     RunSyncRequest request = new RunSyncRequest(sourceFormat, sourceMetadataPath, targetFormat);
     try {
-      String requestBody = objectMapper.writeValueAsString(request);
+      String requestBody = mapper.writeValueAsString(request);
       HttpRequest httpRequest =
           HttpRequest.newBuilder()
               .uri(URI.create(hostUrl + RUN_SYNC_ENDPOINT))
@@ -100,10 +111,10 @@ public final class XTableConverter {
 
       HttpResponse<String> response =
           client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-      if (response.statusCode() != SUCCESS_STATUS_CODE) {
+      if (!isSuccessStatus(response.statusCode())) {
         throw new IllegalStateException("Conversion failed: " + response.body());
       }
-      return objectMapper.readValue(response.body(), RunSyncResponse.class);
+      return mapper.readValue(response.body(), RunSyncResponse.class);
     } catch (IOException | InterruptedException e) {
       throw new RuntimeException(e);
     }
@@ -112,5 +123,9 @@ public final class XTableConverter {
   private static String checkIfSupportedFormat(String format) {
     TableFormat tableFormat = TableFormat.fromName(format);
     return tableFormat.name();
+  }
+
+  public static boolean isSuccessStatus(int statusCode) {
+    return statusCode >= HTTP_SUCCESS_START && statusCode <= HTTP_SUCCESS_END;
   }
 }

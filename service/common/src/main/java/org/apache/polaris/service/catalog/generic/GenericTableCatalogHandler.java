@@ -75,6 +75,7 @@ public class GenericTableCatalogHandler extends CatalogHandler {
     enforceGenericTablesEnabledOrThrow();
     this.genericTableCatalog =
         new GenericTableCatalog(metaStoreManager, callContext, this.resolutionManifest);
+    initializeConversionServiceIfEnabled();
   }
 
   public ListGenericTablesResponse listGenericTables(Namespace parent) {
@@ -99,14 +100,7 @@ public class GenericTableCatalogHandler extends CatalogHandler {
             createdEntity.getFormat(),
             createdEntity.getDoc(),
             createdEntity.getPropertiesAsMap());
-    if (XTableConversionUtils.requiresConversion(callContext, properties)) {
-      XTableConverter converter =
-          new XTableConverter(XTableConversionUtils.getHostUrl(callContext));
-      RunSyncResponse runSyncResponse = converter.execute(createdEntity);
-      createdTable
-          .getProperties()
-          .put(TARGET_FORMAT_METADATA_PATH_KEY, runSyncResponse.getTargetMetadataPath());
-    }
+    convertIfRequired(createdEntity, createdTable);
     return LoadGenericTableResponse.builder().setTable(createdTable).build();
   }
 
@@ -129,14 +123,14 @@ public class GenericTableCatalogHandler extends CatalogHandler {
             loadedEntity.getDoc(),
             loadedEntity.getPropertiesAsMap());
 
-    if (XTableConversionUtils.requiresConversion(callContext, loadedTable.getProperties())) {
-      XTableConverter converter =
-          new XTableConverter(XTableConversionUtils.getHostUrl(callContext));
-      RunSyncResponse runSyncResponse = converter.execute(loadedEntity);
-      loadedTable
-          .getProperties()
-          .put(TARGET_FORMAT_METADATA_PATH_KEY, runSyncResponse.getTargetMetadataPath());
-    }
+    convertIfRequired(loadedEntity, loadedTable);
     return LoadGenericTableResponse.builder().setTable(loadedTable).build();
+  }
+
+  private void convertIfRequired(GenericTableEntity entity, GenericTable table) {
+    if (XTableConversionUtils.requiresConversion(callContext, table.getProperties())) {
+      RunSyncResponse response = XTableConverter.getInstance().execute(entity);
+      table.getProperties().put(TARGET_FORMAT_METADATA_PATH_KEY, response.getTargetMetadataPath());
+    }
   }
 }

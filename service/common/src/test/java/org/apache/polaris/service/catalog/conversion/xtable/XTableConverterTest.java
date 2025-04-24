@@ -28,6 +28,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -66,11 +68,23 @@ class XTableConverterTest {
   private XTableConverter converter;
 
   @BeforeEach
-  void setUp() {
+  void setUp() throws Exception {
     mockClient = mock(HttpClient.class);
     mockMapper = mock(ObjectMapper.class);
     mockResponse = mock(HttpResponse.class);
-    converter = new XTableConverter(HOST_URL, mockClient, mockMapper);
+
+    // inject mocks into private constructor
+    Field inst = XTableConverter.class.getDeclaredField("INSTANCE");
+    inst.setAccessible(true);
+    inst.set(null, null);
+
+    Constructor<XTableConverter> ctor =
+        XTableConverter.class.getDeclaredConstructor(
+            String.class, HttpClient.class, ObjectMapper.class);
+    ctor.setAccessible(true);
+    XTableConverter testInst = ctor.newInstance(HOST_URL, mockClient, mockMapper);
+    inst.set(null, testInst);
+    converter = testInst;
   }
 
   @Test

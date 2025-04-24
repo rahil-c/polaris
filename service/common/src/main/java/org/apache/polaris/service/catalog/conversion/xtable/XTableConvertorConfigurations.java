@@ -19,6 +19,8 @@
 package org.apache.polaris.service.catalog.conversion.xtable;
 
 public class XTableConvertorConfigurations {
+  private XTableConvertorConfigurations() {}
+
   public static final String SOURCE_METADATA_PATH_KEY = "sourceMetadataPath";
   public static final String ENABLED_READ_TABLE_FORMATS_KEY = "enabledReadTableFormats";
   public static final String TARGET_FORMAT_METADATA_PATH_KEY = "targetMetadataPath";

@@ -41,12 +41,4 @@ public class XTableConversionUtils {
         && tableProperties.containsKey(ENABLED_READ_TABLE_FORMATS_KEY)
         && tableProperties.containsKey(SOURCE_METADATA_PATH_KEY);
   }
-
-  public static String getHostUrl(CallContext context) {
-    return context
-        .getPolarisCallContext()
-        .getConfigurationStore()
-        .getConfiguration(
-            context.getPolarisCallContext(), FeatureConfiguration.XTABLE_REST_SERVICE_HOST_URL);
-  }
 }

@@ -145,6 +145,7 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
     this.namespaceCatalog =
         (baseCatalog instanceof SupportsNamespaces) ? (SupportsNamespaces) baseCatalog : null;
     this.viewCatalog = (baseCatalog instanceof ViewCatalog) ? (ViewCatalog) baseCatalog : null;
+    initializeConversionServiceIfEnabled();
   }
 
   /**
@@ -283,9 +284,8 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
     // etc
     LoadTableResponse response = CatalogHandlers.createTable(baseCatalog, namespace, request);
     if (XTableConversionUtils.requiresConversion(callContext, response.config())) {
-      XTableConverter converter =
-          new XTableConverter(XTableConversionUtils.getHostUrl(callContext));
-      RunSyncResponse runSyncResponse = converter.execute(new IcebergTableLikeEntity(catalog));
+      RunSyncResponse runSyncResponse =
+          XTableConverter.getInstance().execute(new IcebergTableLikeEntity(catalog));
       response
           .config()
           .put(TARGET_FORMAT_METADATA_PATH_KEY, runSyncResponse.getTargetMetadataPath());
@@ -550,9 +550,7 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
     if (tableEntity != null
         && XTableConversionUtils.requiresConversion(
             callContext, optionalLoadTableResponse.get().config())) {
-      XTableConverter converter =
-          new XTableConverter(XTableConversionUtils.getHostUrl(callContext));
-      RunSyncResponse runSyncResponse = converter.execute(tableEntity);
+      RunSyncResponse runSyncResponse = XTableConverter.getInstance().execute(tableEntity);
       optionalLoadTableResponse
           .get()
           .config()

@@ -46,7 +46,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GenericTable'
+              $ref: '#/components/schemas/ConversionRequest'
       parameters:
         - name: freshness
           in: query
@@ -61,7 +61,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericTable'
+                $ref: '#/components/schemas/ConversionRequest'
         '404':
           description: Conversion not available
         '500':
@@ -75,7 +75,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GenericTable'
+              $ref: '#/components/schemas/ConversionRequest'
       parameters:
         - name: freshness
           in: query
@@ -96,3 +96,14 @@ components:
   schemas:
     GenericTable:
       $ref: './generic-tables-api.yaml#/components/schemas/GenericTable'
+    ConversionRequest:
+      type: object
+      properties:
+        table:
+          $ref: '#/components/schemas/GenericTable'
+        credentials:
+          type: object
+          additionalProperties:
+            type: string
+      required:
+        - table

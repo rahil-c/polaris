@@ -118,8 +118,7 @@ public class IcebergCatalogHandlerAuthzTest extends PolarisAuthzTestBase {
         factory,
         catalogName,
         polarisAuthorizer,
-        Mockito.mock(TableConverterRegistry.class),
-        Mockito.mock(GenericTableCatalogHandler.class));
+        Mockito.mock(TableConverterRegistry.class));
   }
 
   /**
@@ -259,8 +258,7 @@ public class IcebergCatalogHandlerAuthzTest extends PolarisAuthzTestBase {
             callContextCatalogFactory,
             CATALOG_NAME,
             polarisAuthorizer,
-            Mockito.mock(TableConverterRegistry.class),
-            Mockito.mock(GenericTableCatalogHandler.class));
+            Mockito.mock(TableConverterRegistry.class));
 
     // a variety of actions are all disallowed because the principal's credentials must be rotated
     doTestInsufficientPrivileges(
@@ -294,8 +292,7 @@ public class IcebergCatalogHandlerAuthzTest extends PolarisAuthzTestBase {
             callContextCatalogFactory,
             CATALOG_NAME,
             polarisAuthorizer,
-            Mockito.mock(TableConverterRegistry.class),
-            Mockito.mock(GenericTableCatalogHandler.class));
+            Mockito.mock(TableConverterRegistry.class));
 
     doTestSufficientPrivilegeSets(
         List.of(Set.of(PolarisPrivilege.NAMESPACE_LIST)),

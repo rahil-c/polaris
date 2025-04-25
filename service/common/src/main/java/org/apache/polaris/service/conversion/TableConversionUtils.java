@@ -35,4 +35,14 @@ public class TableConversionUtils {
     return new GenericTable(
         icebergTable.name(), FORMAT_ICEBERG, "Iceberg table " + icebergTable.name(), properties);
   }
+
+  public static GenericTable buildGenericTableWrapperForIceberg(
+      String tableName,
+      String metadataLocation
+  ) {
+    HashMap<String, String> properties = new HashMap<>();
+    properties.put(PROPERTY_LOCATION, metadataLocation);
+    return new GenericTable(
+        tableName, FORMAT_ICEBERG, "Iceberg table " + tableName, properties);
+  }
 }

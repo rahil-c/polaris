@@ -185,22 +185,6 @@ public class IcebergCatalogAdapter
     }
   }
 
-  private GenericTableCatalogHandler newGenericTableHandlerWrapper(
-      SecurityContext securityContext, String catalogName) {
-    var authenticatedPrincipal = (AuthenticatedPolarisPrincipal) securityContext.getUserPrincipal();
-    if (authenticatedPrincipal == null) {
-      throw new NotAuthorizedException("Failed to find authenticatedPrincipal in SecurityContext");
-    }
-
-    return new GenericTableCatalogHandler(
-        callContext,
-        entityManager,
-        metaStoreManager,
-        securityContext,
-        catalogName,
-        polarisAuthorizer);
-  }
-
   private IcebergCatalogHandler newHandlerWrapper(
       SecurityContext securityContext, String catalogName) {
     AuthenticatedPolarisPrincipal authenticatedPrincipal =
@@ -208,8 +192,6 @@ public class IcebergCatalogAdapter
     if (authenticatedPrincipal == null) {
       throw new NotAuthorizedException("Failed to find authenticatedPrincipal in SecurityContext");
     }
-    GenericTableCatalogHandler wrapper =
-        newGenericTableHandlerWrapper(securityContext, catalogName);
     return new IcebergCatalogHandler(
         callContext,
         entityManager,
@@ -219,8 +201,7 @@ public class IcebergCatalogAdapter
         catalogFactory,
         catalogName,
         polarisAuthorizer,
-        tableConverterRegistry,
-        wrapper);
+        tableConverterRegistry);
   }
 
   @Override

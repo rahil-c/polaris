@@ -241,8 +241,8 @@ public class FeatureConfiguration<T> extends PolarisConfiguration<T> {
       PolarisConfiguration.<Integer>builder()
           .key("TABLE_CONVERSION_DEFAULT_SLA_SECONDS")
           .description(
-              "The default lag that is considered acceptable between tables during" +
-                  " format conversion")
+              "The default lag that is considered acceptable between tables during"
+                  + " format conversion")
           .defaultValue(300)
           .buildFeatureConfiguration();
 }

@@ -37,12 +37,9 @@ public class TableConversionUtils {
   }
 
   public static GenericTable buildGenericTableWrapperForIceberg(
-      String tableName,
-      String metadataLocation
-  ) {
+      String tableName, String metadataLocation) {
     HashMap<String, String> properties = new HashMap<>();
     properties.put(PROPERTY_LOCATION, metadataLocation);
-    return new GenericTable(
-        tableName, FORMAT_ICEBERG, "Iceberg table " + tableName, properties);
+    return new GenericTable(tableName, FORMAT_ICEBERG, "Iceberg table " + tableName, properties);
   }
 }

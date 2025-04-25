@@ -84,7 +84,6 @@ import org.apache.polaris.core.context.CallContext;
 import org.apache.polaris.core.entity.CatalogEntity;
 import org.apache.polaris.core.entity.PolarisEntitySubType;
 import org.apache.polaris.core.entity.table.IcebergTableLikeEntity;
-import org.apache.polaris.core.entity.table.TableLikeEntity;
 import org.apache.polaris.core.persistence.PolarisEntityManager;
 import org.apache.polaris.core.persistence.PolarisMetaStoreManager;
 import org.apache.polaris.core.persistence.PolarisResolvedPathWrapper;
@@ -95,7 +94,6 @@ import org.apache.polaris.core.secrets.UserSecretsManager;
 import org.apache.polaris.core.storage.PolarisStorageActions;
 import org.apache.polaris.service.catalog.SupportsNotifications;
 import org.apache.polaris.service.catalog.common.CatalogHandler;
-import org.apache.polaris.service.catalog.generic.GenericTableCatalogHandler;
 import org.apache.polaris.service.context.CallContextCatalogFactory;
 import org.apache.polaris.service.conversion.TableConversionUtils;
 import org.apache.polaris.service.conversion.TableConverter;
@@ -103,7 +101,6 @@ import org.apache.polaris.service.conversion.TableConverterRegistry;
 import org.apache.polaris.service.http.IcebergHttpUtil;
 import org.apache.polaris.service.http.IfNoneMatch;
 import org.apache.polaris.service.types.GenericTable;
-import org.apache.polaris.service.types.LoadGenericTableResponse;
 import org.apache.polaris.service.types.NotificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -566,8 +563,7 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
         .getConfigurationStore()
         .getConfiguration(
             callContext.getPolarisCallContext(),
-            FeatureConfiguration.TABLE_CONVERSION_CONVERT_ON_READ
-        );
+            FeatureConfiguration.TABLE_CONVERSION_CONVERT_ON_READ);
   }
 
   // TODO we should support overrides on a table / catalog level, but unclear
@@ -578,8 +574,7 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
         .getConfigurationStore()
         .getConfiguration(
             callContext.getPolarisCallContext(),
-            FeatureConfiguration.TABLE_CONVERSION_DEFAULT_SLA_SECONDS
-        );
+            FeatureConfiguration.TABLE_CONVERSION_DEFAULT_SLA_SECONDS);
   }
 
   /**
@@ -604,14 +599,12 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
         return Optional.empty();
       } else {
         int conversionSla = conversionDefaultSla();
-        Optional<GenericTable> converted = tableConverter.convert(
-            TableConversionUtils.buildGenericTableWrapperForIceberg(
-                tableIdentifier.name(),
-                tableLikeEntity.getMetadataLocation()
-            ),
-            Map.of(), // TODO figure out credentials
-            conversionSla
-        );
+        Optional<GenericTable> converted =
+            tableConverter.convert(
+                TableConversionUtils.buildGenericTableWrapperForIceberg(
+                    tableIdentifier.name(), tableLikeEntity.getMetadataLocation()),
+                Map.of(), // TODO figure out credentials
+                conversionSla);
         if (converted.isEmpty()) {
           return Optional.empty();
         } else {
@@ -626,7 +619,8 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
           } else {
             if (baseCatalog instanceof IcebergCatalog icebergCatalog) {
               TableMetadata tableMetadata = icebergCatalog.loadTableUnsafe(icebergMetadataLocation);
-              return Optional.of(LoadTableResponse.builder().withTableMetadata(tableMetadata).build());
+              return Optional.of(
+                  LoadTableResponse.builder().withTableMetadata(tableMetadata).build());
             } else {
               return Optional.empty();
             }

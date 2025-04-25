@@ -66,6 +66,31 @@ paths:
           description: Conversion not available
         '500':
           description: Internal error
+  /conversion/v1/convert-async:
+    post:
+      summary: Trigger a table conversion without waiting for the result
+      operationId: convertTableAsync
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericTable'
+      parameters:
+        - name: freshness
+          in: query
+          required: false
+          description: Requested freshness in seconds
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '202':
+          description: Conversion triggered successfully
+        '404':
+          description: Conversion not available
+        '500':
+          description: Internal error
 
 components:
   schemas:

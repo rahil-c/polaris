@@ -18,10 +18,9 @@
  */
 package org.apache.polaris.extension.conversion.remote;
 
-import java.util.Optional;
-
 import io.smallrye.common.annotation.Identifier;
 import jakarta.enterprise.context.RequestScoped;
+import java.util.Optional;
 import org.apache.polaris.service.conversion.TableConverter;
 import org.apache.polaris.service.types.GenericTable;
 

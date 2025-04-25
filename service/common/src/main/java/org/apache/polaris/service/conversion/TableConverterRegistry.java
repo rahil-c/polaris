@@ -16,9 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.polaris.service.conversion;
 
 public interface TableConverterRegistry {
-    TableConverter getConverter(String format);
+  TableConverter getConverter(String format);
 }

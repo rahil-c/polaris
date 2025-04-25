@@ -16,14 +16,12 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.polaris.service.quarkus.config.conversion;
 
-import org.eclipse.microprofile.config.inject.ConfigProperties;
-
 import java.util.Map;
+import org.eclipse.microprofile.config.inject.ConfigProperties;
 
 @ConfigProperties(prefix = "polaris.converter")
 public class QuarkusConverterConfig {
-    public Map<String, String> converters;
+  public Map<String, String> converters;
 }

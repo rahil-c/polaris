@@ -16,23 +16,19 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.polaris.service.conversion;
 
 import io.smallrye.common.annotation.Identifier;
 import jakarta.enterprise.context.RequestScoped;
-import org.apache.polaris.service.types.GenericTable;
-
 import java.util.Optional;
-
+import org.apache.polaris.service.types.GenericTable;
 
 @RequestScoped
 @Identifier("default")
 public class NoneTableConverter implements TableConverter {
 
-    @Override
-    public Optional<GenericTable> convert(GenericTable table, int requestedFreshnessSeconds) {
-        return Optional.empty();
-    }
+  @Override
+  public Optional<GenericTable> convert(GenericTable table, int requestedFreshnessSeconds) {
+    return Optional.empty();
+  }
 }
-

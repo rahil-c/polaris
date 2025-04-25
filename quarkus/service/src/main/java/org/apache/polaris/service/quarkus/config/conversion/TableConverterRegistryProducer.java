@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.polaris.service.quarkus.config.conversion;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -26,12 +25,11 @@ import org.apache.polaris.service.conversion.TableConverterRegistry;
 
 @ApplicationScoped
 public class TableConverterRegistryProducer {
-    @Inject
-    QuarkusTableConverterRegistry delegate;
+  @Inject QuarkusTableConverterRegistry delegate;
 
-    @Produces
-    @ApplicationScoped
-    public TableConverterRegistry produceRegistry() {
-        return delegate;
-    }
+  @Produces
+  @ApplicationScoped
+  public TableConverterRegistry produceRegistry() {
+    return delegate;
+  }
 }

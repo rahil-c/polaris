@@ -395,7 +395,6 @@ public class IcebergCatalogAdapter
     PolarisResolvedPathWrapper target = resolutionManifest.getResolvedPath(tableIdentifier);
     IcebergTableLikeEntity tableEntity = getTableEntity(tableIdentifier);
 
-
     return withCatalog(
         securityContext,
         prefix,

@@ -177,12 +177,13 @@ public record TestServices(
 
       TaskExecutor taskExecutor = Mockito.mock(TaskExecutor.class);
 
-      TableConverterRegistry tableConverterRegistry = new TableConverterRegistry() {
-          @Override
-          public TableConverter getConverter(String format) {
+      TableConverterRegistry tableConverterRegistry =
+          new TableConverterRegistry() {
+            @Override
+            public TableConverter getConverter(String format) {
               return null;
-          }
-      };
+            }
+          };
 
       CallContextCatalogFactory callContextFactory =
           new PolarisCallContextCatalogFactory(

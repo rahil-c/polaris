@@ -74,6 +74,7 @@ import org.apache.polaris.service.catalog.CatalogPrefixParser;
 import org.apache.polaris.service.catalog.api.IcebergRestCatalogApiService;
 import org.apache.polaris.service.catalog.api.IcebergRestConfigurationApiService;
 import org.apache.polaris.service.catalog.common.CatalogAdapter;
+import org.apache.polaris.service.catalog.generic.GenericTableCatalogHandler;
 import org.apache.polaris.service.context.CallContextCatalogFactory;
 import org.apache.polaris.service.conversion.TableConverterRegistry;
 import org.apache.polaris.service.http.IcebergHttpUtil;
@@ -186,6 +187,22 @@ public class IcebergCatalogAdapter
     }
   }
 
+  private GenericTableCatalogHandler newGenericTableHandlerWrapper(
+      SecurityContext securityContext, String catalogName) {
+    var authenticatedPrincipal = (AuthenticatedPolarisPrincipal) securityContext.getUserPrincipal();
+    if (authenticatedPrincipal == null) {
+      throw new NotAuthorizedException("Failed to find authenticatedPrincipal in SecurityContext");
+    }
+
+    return new GenericTableCatalogHandler(
+        callContext,
+        entityManager,
+        metaStoreManager,
+        securityContext,
+        catalogName,
+        polarisAuthorizer);
+  }
+
   private IcebergCatalogHandler newHandlerWrapper(
       SecurityContext securityContext, String catalogName) {
     AuthenticatedPolarisPrincipal authenticatedPrincipal =
@@ -193,7 +210,7 @@ public class IcebergCatalogAdapter
     if (authenticatedPrincipal == null) {
       throw new NotAuthorizedException("Failed to find authenticatedPrincipal in SecurityContext");
     }
-
+    GenericTableCatalogHandler wrapper = newGenericTableHandlerWrapper(securityContext, catalogName);
     return new IcebergCatalogHandler(
         callContext,
         entityManager,
@@ -202,7 +219,9 @@ public class IcebergCatalogAdapter
         securityContext,
         catalogFactory,
         catalogName,
-        polarisAuthorizer);
+        polarisAuthorizer,
+        tableConverterRegistry,
+        wrapper);
   }
 
   @Override
@@ -390,10 +409,6 @@ public class IcebergCatalogAdapter
     if (ifNoneMatch.isWildcard()) {
       throw new BadRequestException("If-None-Match may not take the value of '*'");
     }
-
-    // TODO sketch
-    PolarisResolvedPathWrapper target = resolutionManifest.getResolvedPath(tableIdentifier);
-    IcebergTableLikeEntity tableEntity = getTableEntity(tableIdentifier);
 
     return withCatalog(
         securityContext,

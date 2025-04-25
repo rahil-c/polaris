@@ -20,7 +20,9 @@ package org.apache.polaris.service.conversion;
 
 import java.util.HashMap;
 import org.apache.iceberg.Table;
+import org.apache.iceberg.rest.responses.LoadTableResponse;
 import org.apache.polaris.service.types.GenericTable;
+import org.apache.polaris.service.types.LoadGenericTableResponse;
 
 /** A collection of utility member and methods related to table conversion. */
 public class TableConversionUtils {

@@ -227,4 +227,13 @@ public class FeatureConfiguration<T> extends PolarisConfiguration<T> {
                   + " to perform federation to remote catalogs.")
           .defaultValue(false)
           .buildFeatureConfiguration();
+
+  public static final FeatureConfiguration<Boolean> TABLE_CONVERSION_CONVERT_ON_READ =
+      PolarisConfiguration.<Boolean>builder()
+          .key("TABLE_CONVERSION_CONVERT_ON_READ")
+          .description(
+              "If true, table conversion may trigger when reading a table in a different format" +
+                  " than the one it was written with")
+          .defaultValue(true)
+          .buildFeatureConfiguration();
 }

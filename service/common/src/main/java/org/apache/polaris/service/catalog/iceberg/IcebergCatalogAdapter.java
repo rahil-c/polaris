@@ -60,8 +60,10 @@ import org.apache.polaris.core.auth.PolarisAuthorizer;
 import org.apache.polaris.core.context.CallContext;
 import org.apache.polaris.core.context.RealmContext;
 import org.apache.polaris.core.entity.PolarisEntity;
+import org.apache.polaris.core.entity.table.IcebergTableLikeEntity;
 import org.apache.polaris.core.persistence.PolarisEntityManager;
 import org.apache.polaris.core.persistence.PolarisMetaStoreManager;
+import org.apache.polaris.core.persistence.PolarisResolvedPathWrapper;
 import org.apache.polaris.core.persistence.ResolvedPolarisEntity;
 import org.apache.polaris.core.persistence.resolver.Resolver;
 import org.apache.polaris.core.persistence.resolver.ResolverStatus;
@@ -73,6 +75,7 @@ import org.apache.polaris.service.catalog.api.IcebergRestCatalogApiService;
 import org.apache.polaris.service.catalog.api.IcebergRestConfigurationApiService;
 import org.apache.polaris.service.catalog.common.CatalogAdapter;
 import org.apache.polaris.service.context.CallContextCatalogFactory;
+import org.apache.polaris.service.conversion.TableConverterRegistry;
 import org.apache.polaris.service.http.IcebergHttpUtil;
 import org.apache.polaris.service.http.IfNoneMatch;
 import org.apache.polaris.service.types.CommitTableRequest;
@@ -136,6 +139,7 @@ public class IcebergCatalogAdapter
   private final UserSecretsManager userSecretsManager;
   private final PolarisAuthorizer polarisAuthorizer;
   private final CatalogPrefixParser prefixParser;
+  private final TableConverterRegistry tableConverterRegistry;
 
   @Inject
   public IcebergCatalogAdapter(
@@ -146,7 +150,8 @@ public class IcebergCatalogAdapter
       PolarisMetaStoreManager metaStoreManager,
       UserSecretsManager userSecretsManager,
       PolarisAuthorizer polarisAuthorizer,
-      CatalogPrefixParser prefixParser) {
+      CatalogPrefixParser prefixParser,
+      TableConverterRegistry tableConverterRegistry) {
     this.realmContext = realmContext;
     this.callContext = callContext;
     this.catalogFactory = catalogFactory;
@@ -155,6 +160,7 @@ public class IcebergCatalogAdapter
     this.userSecretsManager = userSecretsManager;
     this.polarisAuthorizer = polarisAuthorizer;
     this.prefixParser = prefixParser;
+    this.tableConverterRegistry = tableConverterRegistry;
 
     // FIXME: This is a hack to set the current context for downstream calls.
     CallContext.setCurrentContext(callContext);
@@ -384,6 +390,11 @@ public class IcebergCatalogAdapter
     if (ifNoneMatch.isWildcard()) {
       throw new BadRequestException("If-None-Match may not take the value of '*'");
     }
+
+    // TODO sketch
+    PolarisResolvedPathWrapper target = resolutionManifest.getResolvedPath(tableIdentifier);
+    IcebergTableLikeEntity tableEntity = getTableEntity(tableIdentifier);
+
 
     return withCatalog(
         securityContext,

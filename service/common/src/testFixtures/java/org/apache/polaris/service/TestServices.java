@@ -56,6 +56,8 @@ import org.apache.polaris.service.config.DefaultConfigurationStore;
 import org.apache.polaris.service.config.RealmEntityManagerFactory;
 import org.apache.polaris.service.context.CallContextCatalogFactory;
 import org.apache.polaris.service.context.PolarisCallContextCatalogFactory;
+import org.apache.polaris.service.conversion.TableConverter;
+import org.apache.polaris.service.conversion.TableConverterRegistry;
 import org.apache.polaris.service.persistence.InMemoryPolarisMetaStoreManagerFactory;
 import org.apache.polaris.service.secrets.UnsafeInMemorySecretsManagerFactory;
 import org.apache.polaris.service.storage.PolarisStorageIntegrationProviderImpl;
@@ -175,6 +177,13 @@ public record TestServices(
 
       TaskExecutor taskExecutor = Mockito.mock(TaskExecutor.class);
 
+      TableConverterRegistry tableConverterRegistry = new TableConverterRegistry() {
+          @Override
+          public TableConverter getConverter(String format) {
+              return null;
+          }
+      };
+
       CallContextCatalogFactory callContextFactory =
           new PolarisCallContextCatalogFactory(
               realmEntityManagerFactory,
@@ -192,7 +201,8 @@ public record TestServices(
               metaStoreManager,
               userSecretsManager,
               authorizer,
-              new DefaultCatalogPrefixParser());
+              new DefaultCatalogPrefixParser(),
+              tableConverterRegistry);
 
       IcebergRestCatalogApi restApi = new IcebergRestCatalogApi(service);
       IcebergRestConfigurationApi restConfigurationApi = new IcebergRestConfigurationApi(service);

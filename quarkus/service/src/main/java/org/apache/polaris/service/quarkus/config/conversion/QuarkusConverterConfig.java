@@ -16,25 +16,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.polaris.extension.conversion.remote;
 
-import java.util.Optional;
+package org.apache.polaris.service.quarkus.config.conversion;
 
-import io.smallrye.common.annotation.Identifier;
-import jakarta.enterprise.context.RequestScoped;
-import org.apache.polaris.service.conversion.TableConverter;
-import org.apache.polaris.service.types.GenericTable;
+import org.eclipse.microprofile.config.inject.ConfigProperties;
 
-@RequestScoped
-@Identifier("remote")
-public class RemoteTableConverter implements TableConverter {
+import java.util.Map;
 
-  // TODO constructor takes the hostname, etc.
-  public RemoteTableConverter() {}
-
-  // TODO call remote service
-  @Override
-  public Optional<GenericTable> convert(GenericTable table, int requestedFreshnessSeconds) {
-    return null;
-  }
+@ConfigProperties(prefix = "polaris.converter")
+public class QuarkusConverterConfig {
+    public Map<String, String> converters;
 }

@@ -60,10 +60,8 @@ import org.apache.polaris.core.auth.PolarisAuthorizer;
 import org.apache.polaris.core.context.CallContext;
 import org.apache.polaris.core.context.RealmContext;
 import org.apache.polaris.core.entity.PolarisEntity;
-import org.apache.polaris.core.entity.table.IcebergTableLikeEntity;
 import org.apache.polaris.core.persistence.PolarisEntityManager;
 import org.apache.polaris.core.persistence.PolarisMetaStoreManager;
-import org.apache.polaris.core.persistence.PolarisResolvedPathWrapper;
 import org.apache.polaris.core.persistence.ResolvedPolarisEntity;
 import org.apache.polaris.core.persistence.resolver.Resolver;
 import org.apache.polaris.core.persistence.resolver.ResolverStatus;
@@ -210,7 +208,8 @@ public class IcebergCatalogAdapter
     if (authenticatedPrincipal == null) {
       throw new NotAuthorizedException("Failed to find authenticatedPrincipal in SecurityContext");
     }
-    GenericTableCatalogHandler wrapper = newGenericTableHandlerWrapper(securityContext, catalogName);
+    GenericTableCatalogHandler wrapper =
+        newGenericTableHandlerWrapper(securityContext, catalogName);
     return new IcebergCatalogHandler(
         callContext,
         entityManager,

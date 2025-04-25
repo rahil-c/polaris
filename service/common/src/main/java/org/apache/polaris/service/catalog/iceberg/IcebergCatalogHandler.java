@@ -106,8 +106,6 @@ import org.apache.polaris.service.types.NotificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.text.html.Option;
-
 /**
  * Authorization-aware adapter between REST stubs and shared Iceberg SDK CatalogHandlers.
  *
@@ -151,7 +149,13 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
       PolarisAuthorizer authorizer,
       TableConverterRegistry tableConverterRegistry,
       GenericTableCatalogHandler genericTableCatalogHandler) {
-    super(callContext, entityManager, securityContext, catalogName, authorizer, tableConverterRegistry);
+    super(
+        callContext,
+        entityManager,
+        securityContext,
+        catalogName,
+        authorizer,
+        tableConverterRegistry);
     this.metaStoreManager = metaStoreManager;
     this.userSecretsManager = userSecretsManager;
     this.catalogFactory = catalogFactory;
@@ -558,8 +562,8 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
   }
 
   /**
-   * If applicable, delegates loading the table to GenericTableCatalogHandler
-   * Note that this method needs to be called after auth checks
+   * If applicable, delegates loading the table to GenericTableCatalogHandler Note that this method
+   * needs to be called after auth checks
    */
   private Optional<LoadTableResponse> loadTableViaGenericTableIfApplicable(
       TableIdentifier tableIdentifier) {
@@ -571,22 +575,18 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
     } else if (tableLikeEntity.getSubType() == PolarisEntitySubType.GENERIC_TABLE) {
       LoadGenericTableResponse loadGenericTableResponse =
           genericTableCatalogHandler.loadGenericTable(tableIdentifier);
-      String icebergMetadataLocation = loadGenericTableResponse
-          .getTable()
-          .getProperties()
-          .getOrDefault(TableConversionUtils.PROPERTY_LOCATION, null);
+      String icebergMetadataLocation =
+          loadGenericTableResponse
+              .getTable()
+              .getProperties()
+              .getOrDefault(TableConversionUtils.PROPERTY_LOCATION, null);
       if (icebergMetadataLocation == null) {
         LOGGER.debug("Received a null metadata location after table conversion");
         return Optional.empty();
       } else {
         if (baseCatalog instanceof IcebergCatalog icebergCatalog) {
           TableMetadata tableMetadata = icebergCatalog.loadTableUnsafe(icebergMetadataLocation);
-          return Optional.of(
-              LoadTableResponse
-                  .builder()
-                  .withTableMetadata(tableMetadata)
-                  .build()
-          );
+          return Optional.of(LoadTableResponse.builder().withTableMetadata(tableMetadata).build());
         } else {
           return Optional.empty();
         }

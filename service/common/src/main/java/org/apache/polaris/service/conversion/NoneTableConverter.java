@@ -20,7 +20,6 @@ package org.apache.polaris.service.conversion;
 
 import io.smallrye.common.annotation.Identifier;
 import jakarta.enterprise.context.RequestScoped;
-
 import java.util.Map;
 import java.util.Optional;
 import org.apache.polaris.service.types.GenericTable;
@@ -31,9 +30,7 @@ public class NoneTableConverter implements TableConverter {
 
   @Override
   public Optional<GenericTable> convert(
-      GenericTable table,
-      Map<String, String> storageCredentials,
-      int requestedFreshnessSeconds) {
+      GenericTable table, Map<String, String> storageCredentials, int requestedFreshnessSeconds) {
     return Optional.empty();
   }
 }

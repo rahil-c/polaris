@@ -30,24 +30,23 @@ public interface TableConverter {
    * can't be converted for some reason. The converted table should be at most
    * `requestedFreshnessSeconds` behind the source table.
    *
-   * @param table                     the table to convert
+   * @param table the table to convert
    * @param storageCredentials
    * @param requestedFreshnessSeconds the maximum requested lag between the source table and the
-   *                                  converted table
+   *     converted table
    */
   Optional<GenericTable> convert(
-      GenericTable table,
-      Map<String, String> storageCredentials,
-      int requestedFreshnessSeconds);
+      GenericTable table, Map<String, String> storageCredentials, int requestedFreshnessSeconds);
 
   /**
    * Returns a converted version of the given {@link GenericTable}, or Optional.empty() if the table
    * can't be converted for some reason.
    *
-   * @param table              the table to convert
+   * @param table the table to convert
    * @param storageCredentials
    */
-  default Optional<GenericTable> convert(GenericTable table, Map<String, String> storageCredentials) {
+  default Optional<GenericTable> convert(
+      GenericTable table, Map<String, String> storageCredentials) {
     return convert(table, storageCredentials, 0);
   }
 }

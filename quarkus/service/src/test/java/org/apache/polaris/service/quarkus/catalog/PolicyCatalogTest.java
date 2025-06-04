@@ -71,12 +71,13 @@ import org.apache.polaris.core.persistence.PolarisEntityManager;
 import org.apache.polaris.core.persistence.PolarisMetaStoreManager;
 import org.apache.polaris.core.persistence.PolicyMappingAlreadyExistsException;
 import org.apache.polaris.core.persistence.bootstrap.RootCredentialsSet;
-import org.apache.polaris.core.persistence.cache.EntityCache;
+import org.apache.polaris.core.persistence.cache.InMemoryEntityCache;
 import org.apache.polaris.core.persistence.dao.entity.BaseResult;
 import org.apache.polaris.core.persistence.dao.entity.PrincipalSecretsResult;
 import org.apache.polaris.core.persistence.transactional.TransactionalPersistence;
 import org.apache.polaris.core.policy.PredefinedPolicyTypes;
 import org.apache.polaris.core.policy.exceptions.NoSuchPolicyException;
+import org.apache.polaris.core.policy.exceptions.PolicyInUseException;
 import org.apache.polaris.core.policy.exceptions.PolicyVersionMismatchException;
 import org.apache.polaris.core.policy.validator.InvalidPolicyException;
 import org.apache.polaris.core.secrets.UserSecretsManager;
@@ -93,6 +94,8 @@ import org.apache.polaris.service.catalog.io.DefaultFileIOFactory;
 import org.apache.polaris.service.catalog.io.FileIOFactory;
 import org.apache.polaris.service.catalog.policy.PolicyCatalog;
 import org.apache.polaris.service.config.RealmEntityManagerFactory;
+import org.apache.polaris.service.config.ReservedProperties;
+import org.apache.polaris.service.events.NoOpPolarisEventListener;
 import org.apache.polaris.service.storage.PolarisStorageIntegrationProviderImpl;
 import org.apache.polaris.service.task.TaskExecutor;
 import org.apache.polaris.service.types.ApplicablePolicy;
@@ -118,12 +121,14 @@ public class PolicyCatalogTest {
     @Override
     public Map<String, String> getConfigOverrides() {
       return Map.of(
-          "polaris.features.defaults.\"ALLOW_SPECIFYING_FILE_IO_IMPL\"",
+          "polaris.features.\"ALLOW_SPECIFYING_FILE_IO_IMPL\"",
           "true",
-          "polaris.features.defaults.\"INITIALIZE_DEFAULT_CATALOG_FILEIO_FOR_TEST\"",
+          "polaris.features.\"SUPPORTED_CATALOG_STORAGE_TYPES\"",
+          "[\"FILE\"]",
+          "polaris.features.\"ALLOW_INSECURE_STORAGE_TYPES\"",
           "true",
-          "polaris.features.defaults.\"SUPPORTED_CATALOG_STORAGE_TYPES\"",
-          "[\"FILE\"]");
+          "polaris.readiness.ignore-severe-issues",
+          "true");
     }
   }
 
@@ -168,6 +173,7 @@ public class PolicyCatalogTest {
   private AuthenticatedPolarisPrincipal authenticatedRoot;
   private PolarisEntity catalogEntity;
   private SecurityContext securityContext;
+  private ReservedProperties reservedProperties;
 
   @BeforeAll
   public static void setUpMocks() {
@@ -184,6 +190,7 @@ public class PolicyCatalogTest {
             .formatted(
                 testInfo.getTestMethod().map(Method::getName).orElse("test"), System.nanoTime());
     RealmContext realmContext = () -> realmName;
+    QuarkusMock.installMockForType(realmContext, RealmContext.class);
     metaStoreManager = managerFactory.getOrCreateMetaStoreManager(realmContext);
     userSecretsManager = userSecretsManagerFactory.getOrCreateUserSecretsManager(realmContext);
     polarisContext =
@@ -194,7 +201,9 @@ public class PolicyCatalogTest {
             Clock.systemDefaultZone());
     entityManager =
         new PolarisEntityManager(
-            metaStoreManager, new StorageCredentialCache(), new EntityCache(metaStoreManager));
+            metaStoreManager,
+            new StorageCredentialCache(),
+            new InMemoryEntityCache(metaStoreManager));
 
     callContext = CallContext.of(realmContext, polarisContext);
 
@@ -215,6 +224,9 @@ public class PolicyCatalogTest {
     securityContext = Mockito.mock(SecurityContext.class);
     when(securityContext.getUserPrincipal()).thenReturn(authenticatedRoot);
     when(securityContext.isUserInRole(isA(String.class))).thenReturn(true);
+
+    reservedProperties = ReservedProperties.NONE;
+
     adminService =
         new PolarisAdminService(
             callContext,
@@ -222,7 +234,8 @@ public class PolicyCatalogTest {
             metaStoreManager,
             userSecretsManager,
             securityContext,
-            new PolarisAuthorizerImpl(new PolarisConfigurationStore() {}));
+            new PolarisAuthorizerImpl(new PolarisConfigurationStore() {}),
+            reservedProperties);
 
     String storageLocation = "s3://my-bucket/path/to/data";
     storageConfigModel =
@@ -284,7 +297,8 @@ public class PolicyCatalogTest {
             passthroughView,
             securityContext,
             taskExecutor,
-            fileIOFactory);
+            fileIOFactory,
+            new NoOpPolarisEventListener());
     this.icebergCatalog.initialize(
         CATALOG_NAME,
         ImmutableMap.of(
@@ -315,8 +329,8 @@ public class PolicyCatalogTest {
       }
 
       @Override
-      public EntityCache getOrCreateEntityCache(RealmContext realmContext) {
-        return new EntityCache(metaStoreManager);
+      public InMemoryEntityCache getOrCreateEntityCache(RealmContext realmContext) {
+        return new InMemoryEntityCache(metaStoreManager);
       }
 
       @Override
@@ -502,6 +516,30 @@ public class PolicyCatalogTest {
     policyCatalog.dropPolicy(POLICY1, false);
     assertThatThrownBy(() -> policyCatalog.loadPolicy(POLICY1))
         .isInstanceOf(NoSuchPolicyException.class);
+  }
+
+  @Test
+  public void testDropPolicyInUse() {
+    icebergCatalog.createNamespace(NS);
+    policyCatalog.createPolicy(
+        POLICY1, PredefinedPolicyTypes.DATA_COMPACTION.getName(), "test", "{\"enable\": false}");
+    var target = new PolicyAttachmentTarget(PolicyAttachmentTarget.TypeEnum.CATALOG, List.of());
+    policyCatalog.attachPolicy(POLICY1, target, null);
+
+    assertThatThrownBy(() -> policyCatalog.dropPolicy(POLICY1, false))
+        .isInstanceOf(PolicyInUseException.class);
+
+    // The policy is still attached to the catalog
+    List<ApplicablePolicy> applicablePolicies =
+        policyCatalog.getApplicablePolicies(null, null, null);
+    assertThat(applicablePolicies.size()).isEqualTo(1);
+
+    // Drop the policy with detach-all flag
+    policyCatalog.dropPolicy(POLICY1, true);
+
+    // The policy should be detached from the catalog and dropped
+    applicablePolicies = policyCatalog.getApplicablePolicies(null, null, null);
+    assertThat(applicablePolicies.size()).isEqualTo(0);
   }
 
   @Test

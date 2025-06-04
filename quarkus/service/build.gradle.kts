@@ -23,11 +23,6 @@ plugins {
   id("polaris-quarkus")
 }
 
-configurations.all {
-  // exclude junit4 dependency for this module
-  exclude(group = "junit", module = "junit")
-}
-
 dependencies {
   implementation(project(":polaris-core"))
   implementation(project(":polaris-api-management-service"))
@@ -45,6 +40,7 @@ dependencies {
   implementation(platform(libs.opentelemetry.bom))
 
   implementation(platform(libs.quarkus.bom))
+  implementation(project(":polaris-quarkus-common"))
   implementation("io.quarkus:quarkus-logging-json")
   implementation("io.quarkus:quarkus-rest-jackson")
   implementation("io.quarkus:quarkus-reactive-routes")
@@ -52,6 +48,7 @@ dependencies {
   implementation("io.quarkus:quarkus-smallrye-health")
   implementation("io.quarkus:quarkus-micrometer")
   implementation("io.quarkus:quarkus-micrometer-registry-prometheus")
+  implementation("io.quarkus:quarkus-oidc")
   implementation("io.quarkus:quarkus-opentelemetry")
   implementation("io.quarkus:quarkus-security")
   implementation("io.quarkus:quarkus-smallrye-context-propagation")
@@ -72,8 +69,6 @@ dependencies {
   implementation(libs.hadoop.client.runtime)
 
   implementation(libs.auth0.jwt)
-
-  implementation(libs.bouncycastle.bcprov)
 
   compileOnly(libs.jakarta.annotation.api)
   compileOnly(libs.spotbugs.annotations)
@@ -113,6 +108,12 @@ dependencies {
   testImplementation("software.amazon.awssdk:kms")
   testImplementation("software.amazon.awssdk:dynamodb")
 
+  runtimeOnly(project(":polaris-relational-jdbc"))
+  runtimeOnly("io.quarkus:quarkus-jdbc-postgresql") {
+    exclude(group = "org.antlr", module = "antlr4-runtime")
+    exclude(group = "org.scala-lang", module = "scala-library")
+    exclude(group = "org.scala-lang", module = "scala-reflect")
+  }
   testImplementation(platform(libs.quarkus.bom))
   testImplementation("io.quarkus:quarkus-junit5")
   testImplementation("io.quarkus:quarkus-junit5-mockito")
@@ -122,6 +123,13 @@ dependencies {
 
   testImplementation(libs.threeten.extra)
   testImplementation(libs.hawkular.agent.prometheus.scraper)
+
+  testImplementation(project(":polaris-quarkus-test-commons"))
+  testImplementation("io.quarkus:quarkus-junit5")
+  testImplementation(platform(libs.testcontainers.bom))
+  testImplementation("org.testcontainers:testcontainers")
+  testImplementation("org.testcontainers:postgresql")
+  testImplementation("org.postgresql:postgresql")
 }
 
 tasks.withType(Test::class.java).configureEach {
@@ -138,7 +146,14 @@ tasks.withType(Test::class.java).configureEach {
   systemProperty("java.security.manager", "allow")
 }
 
-tasks.named<Test>("test").configure { maxParallelForks = 4 }
+tasks.named<Test>("test").configure {
+  maxParallelForks = 4
+  // enlarge the max heap size to avoid out of memory error
+  maxHeapSize = "4g"
+  // Silence the 'OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader
+  // classes because bootstrap classpath has been appended' warning from OpenJDK.
+  jvmArgs("-Xshare:off")
+}
 
 tasks.named<Test>("intTest").configure {
   maxParallelForks = 1

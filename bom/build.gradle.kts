@@ -53,7 +53,6 @@ dependencies {
     api(project(":polaris-quarkus-spark-tests"))
 
     api(project(":polaris-conversion-xtable"))
-    api(project(":polaris-conversion-remote"))
 
     api(project(":polaris-tests"))
   }

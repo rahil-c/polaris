@@ -69,6 +69,15 @@ public abstract class CatalogHandler {
       PolarisEntityManager entityManager,
       SecurityContext securityContext,
       String catalogName,
+      PolarisAuthorizer authorizer) {
+    this(callContext, entityManager, securityContext, catalogName, authorizer, null);
+  }
+
+  public CatalogHandler(
+      CallContext callContext,
+      PolarisEntityManager entityManager,
+      SecurityContext securityContext,
+      String catalogName,
       PolarisAuthorizer authorizer,
       TableConverterRegistry tableConverterRegistry) {
     this.callContext = callContext;

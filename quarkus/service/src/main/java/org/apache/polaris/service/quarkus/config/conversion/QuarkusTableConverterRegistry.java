@@ -55,6 +55,7 @@ public class QuarkusTableConverterRegistry implements TableConverterRegistry {
   }
 
   /** Load the TableConverter for a format, case-insensitive */
+  @Override
   public TableConverter getConverter(String format) {
     return converterMap.getFirst(format);
   }

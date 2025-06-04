@@ -97,11 +97,11 @@ import org.apache.polaris.core.storage.AccessConfig;
 import org.apache.polaris.core.storage.PolarisStorageActions;
 import org.apache.polaris.service.catalog.SupportsNotifications;
 import org.apache.polaris.service.catalog.common.CatalogHandler;
+import org.apache.polaris.service.config.ReservedProperties;
+import org.apache.polaris.service.context.catalog.CallContextCatalogFactory;
 import org.apache.polaris.service.conversion.TableConversionUtils;
 import org.apache.polaris.service.conversion.TableConverter;
 import org.apache.polaris.service.conversion.TableConverterRegistry;
-import org.apache.polaris.service.config.ReservedProperties;
-import org.apache.polaris.service.context.catalog.CallContextCatalogFactory;
 import org.apache.polaris.service.http.IcebergHttpUtil;
 import org.apache.polaris.service.http.IfNoneMatch;
 import org.apache.polaris.service.types.GenericTable;
@@ -154,7 +154,13 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
       ReservedProperties reservedProperties,
       CatalogHandlerUtils catalogHandlerUtils,
       TableConverterRegistry tableConverterRegistry) {
-    super(callContext, entityManager, securityContext, catalogName, authorizer, tableConverterRegistry);
+    super(
+        callContext,
+        entityManager,
+        securityContext,
+        catalogName,
+        authorizer,
+        tableConverterRegistry);
     this.metaStoreManager = metaStoreManager;
     this.userSecretsManager = userSecretsManager;
     this.catalogFactory = catalogFactory;
@@ -619,8 +625,7 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
         .getPolarisCallContext()
         .getConfigurationStore()
         .getConfiguration(
-            callContext.getRealmContext(),
-            FeatureConfiguration.TABLE_CONVERSION_CONVERT_ON_READ);
+            callContext.getRealmContext(), FeatureConfiguration.TABLE_CONVERSION_CONVERT_ON_READ);
   }
 
   // TODO we should support overrides on a table / catalog level, but unclear

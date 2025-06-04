@@ -1169,10 +1169,10 @@ public class IcebergCatalog extends BaseMetastoreViewCatalog
 
   /** For internal use only */
   public TableMetadata loadTableUnsafe(String metadataLocation) {
-    if (this.getIo() == null) {
+    if (this.catalogFileIO == null) {
       throw new IllegalStateException("Catalog was not properly initialized");
     }
-    return TableMetadataParser.read(this.getIo(), metadataLocation);
+    return TableMetadataParser.read(this.catalogFileIO, metadataLocation);
   }
 
   private class PolarisIcebergCatalogTableBuilder

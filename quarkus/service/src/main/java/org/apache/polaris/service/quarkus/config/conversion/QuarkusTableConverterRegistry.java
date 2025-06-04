@@ -45,13 +45,15 @@ public class QuarkusTableConverterRegistry implements TableConverterRegistry {
                     converter -> converter.getClass().getAnnotation(Identifier.class).value(),
                     Function.identity()));
 
-    config.converters().forEach(
-        (key, identifier) -> {
-          TableConverter converter = beansById.get(identifier);
-          if (converter != null) {
-            converterMap.put(key, List.of(converter));
-          }
-        });
+    config
+        .converters()
+        .forEach(
+            (key, identifier) -> {
+              TableConverter converter = beansById.get(identifier);
+              if (converter != null) {
+                converterMap.put(key, List.of(converter));
+              }
+            });
   }
 
   /** Load the TableConverter for a format, case-insensitive */

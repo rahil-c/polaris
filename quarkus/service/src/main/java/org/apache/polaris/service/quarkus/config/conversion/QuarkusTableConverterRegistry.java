@@ -45,7 +45,7 @@ public class QuarkusTableConverterRegistry implements TableConverterRegistry {
                     converter -> converter.getClass().getAnnotation(Identifier.class).value(),
                     Function.identity()));
 
-    config.converters.forEach(
+    config.converters().forEach(
         (key, identifier) -> {
           TableConverter converter = beansById.get(identifier);
           if (converter != null) {

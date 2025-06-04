@@ -19,9 +19,14 @@
 package org.apache.polaris.service.quarkus.config.conversion;
 
 import java.util.Map;
+
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithParentName;
+import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperties;
 
-@ConfigProperties(prefix = "polaris.converter")
-public class QuarkusConverterConfig {
-  public Map<String, String> converters;
+@ConfigMapping(prefix = "polaris.converter")
+public interface QuarkusConverterConfig {
+  @WithParentName
+  Map<String, String> converters();
 }

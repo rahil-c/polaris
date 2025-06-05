@@ -45,6 +45,7 @@ public final class RemoteXTableConvertor {
   private static final int HTTP_SUCCESS_START = 200;
   private static final int HTTP_SUCCESS_END = 299;
   private static final String RUN_SYNC_ENDPOINT = "/v1/conversion/table";
+  private static final String GENERIC_TABLE_LOCATION_KEY = "location";
 
   private static RemoteXTableConvertor INSTANCE;
   private final String hostUrl;
@@ -91,17 +92,9 @@ public final class RemoteXTableConvertor {
       case GenericTableEntity genericTable -> {
         sourceFormat = checkIfSupportedFormat(genericTable.getFormat());
         sourceTableName = tableEntity.getName();
-        sourceTablePath = genericTable.getPropertiesAsMap().get("location");
-        sourceDataPath =
-            genericTable.getPropertiesAsMap().getOrDefault(SOURCE_DATA_PATH_KEY, sourceTablePath);
-        // TODO setting this for now since there is a bug
-        // with polaris spark client: https://github.com/apache/polaris/issues/1785
-        targetFormats =
-            Arrays.asList(
-                checkIfSupportedFormat(
-                    genericTable
-                        .getPropertiesAsMap()
-                        .getOrDefault(ENABLED_READ_TABLE_FORMATS_KEY, "ICEBERG")));
+        sourceTablePath = genericTable.getPropertiesAsMap().get(GENERIC_TABLE_LOCATION_KEY);
+        sourceDataPath = genericTable.getPropertiesAsMap().getOrDefault(SOURCE_DATA_PATH_KEY, sourceTablePath);
+        targetFormats = Arrays.asList(TableFormat.ICEBERG.name());
       }
       case IcebergTableLikeEntity icebergTable -> {
         sourceFormat = TableFormat.ICEBERG.name();

@@ -29,13 +29,13 @@ public class XTableConversionUtils {
   private XTableConversionUtils() {}
 
   public static boolean requiresConversion(
-      CallContext context, Map<String, String> tableProperties) {
+      CallContext context) {
     boolean conversionServiceEnabled =
         context
             .getPolarisCallContext()
             .getConfigurationStore()
             .getConfiguration(
                 context.getPolarisCallContext(), FeatureConfiguration.ENABLE_XTABLE_REST_SERVICE);
-    return conversionServiceEnabled && tableProperties.containsKey(ENABLED_READ_TABLE_FORMATS_KEY);
+    return conversionServiceEnabled;
   }
 }

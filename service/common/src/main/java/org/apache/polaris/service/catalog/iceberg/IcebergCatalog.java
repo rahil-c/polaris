@@ -1169,6 +1169,13 @@ public class IcebergCatalog extends BaseMetastoreViewCatalog
             });
   }
 
+  public TableMetadata loadTableUnsafe(String metadataLocation) {
+    if (this.catalogFileIO == null) {
+      throw new IllegalStateException("Catalog was not properly initialized");
+    }
+    return TableMetadataParser.read(this.catalogFileIO, metadataLocation);
+  }
+
   private class PolarisIcebergCatalogTableBuilder
       extends BaseMetastoreViewCatalog.BaseMetastoreViewCatalogTableBuilder {
 

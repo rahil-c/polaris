@@ -59,6 +59,11 @@ public class PolarisInMemoryCatalog extends InMemoryCatalog implements PolarisCa
   }
 
   @Override
+  public GenericTable loadGenericTable(TableIdentifier identifier, String enabledReadTableFormat) {
+    return null;
+  }
+
+  @Override
   public boolean dropGenericTable(TableIdentifier identifier) {
     return null != this.genericTables.remove(identifier);
   }

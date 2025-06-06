@@ -24,6 +24,7 @@ import org.apache.iceberg.exceptions.AlreadyExistsException;
 import org.apache.iceberg.spark.Spark3Util;
 import org.apache.polaris.service.types.GenericTable;
 import org.apache.polaris.spark.utils.PolarisCatalogUtils;
+import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.catalyst.analysis.NoSuchNamespaceException;
 import org.apache.spark.sql.catalyst.analysis.NoSuchTableException;
 import org.apache.spark.sql.catalyst.analysis.TableAlreadyExistsException;
@@ -62,8 +63,37 @@ public class PolarisSparkCatalog implements TableCatalog {
   @Override
   public Table loadTable(Identifier identifier) throws NoSuchTableException {
     try {
-      GenericTable genericTable =
-          this.polarisCatalog.loadGenericTable(Spark3Util.identifierToTableIdentifier(identifier));
+      // i think format query param wont be able to work since its confined to the interface which
+      // does not allow.
+      // HOWEVER doing intial creation we would add some table prop there
+
+      GenericTable genericTable;
+      // need to put try catch aroudn this
+      String enabledReadTableFormat =
+          SparkSession.active().conf().get("enabledReadTableFormat", null);
+      if (enabledReadTableFormat == null) {
+        genericTable =
+            this.polarisCatalog.loadGenericTable(
+                Spark3Util.identifierToTableIdentifier(identifier));
+      } else {
+        genericTable =
+            this.polarisCatalog.loadGenericTable(
+                Spark3Util.identifierToTableIdentifier(identifier), enabledReadTableFormat);
+      }
+
+      // ok i have an idea i think this can work.
+
+      /*
+      so a delta generic table was created, with a delta polaris spark client.
+      another spark session is start with iceberg polaris spark client.
+      that client,
+
+      ideally after its gone thru the entire flow there should be two ops
+      a target metadata path, or location has been set to that path
+
+      spark client format side now just needs to load that depeing on how that client was configured
+
+       */
       return PolarisCatalogUtils.loadSparkTable(genericTable);
     } catch (org.apache.iceberg.exceptions.NoSuchTableException e) {
       throw new NoSuchTableException(identifier);

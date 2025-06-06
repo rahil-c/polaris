@@ -137,11 +137,21 @@ public class GenericTableCatalogAdapter
       String prefix,
       String namespace,
       String genericTable,
+      String enabledReadTableFormat,
       RealmContext realmContext,
       SecurityContext securityContext) {
     GenericTableCatalogHandler handler = newHandlerWrapper(securityContext, prefix);
-    LoadGenericTableResponse response =
-        handler.loadGenericTable(TableIdentifier.of(decodeNamespace(namespace), genericTable));
-    return Response.ok(response).build();
+    if (enabledReadTableFormat == null) {
+      LoadGenericTableResponse response =
+          handler.loadGenericTable(
+              TableIdentifier.of(decodeNamespace(namespace), genericTable), null);
+      return Response.ok(response).build();
+
+    } else {
+      LoadGenericTableResponse response =
+          handler.loadGenericTable(
+              TableIdentifier.of(decodeNamespace(namespace), genericTable), enabledReadTableFormat);
+      return Response.ok(response).build();
+    }
   }
 }

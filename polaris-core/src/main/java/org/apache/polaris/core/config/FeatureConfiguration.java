@@ -233,7 +233,7 @@ public class FeatureConfiguration<T> extends PolarisConfiguration<T> {
           .key("ENABLE_XTABLE_REST_SERVICE")
           .description(
               "If true, delegates table metadata conversion to an external XTable REST Service")
-          .defaultValue(false)
+          .defaultValue(true)
           .buildFeatureConfiguration();
 
   public static final FeatureConfiguration<String> XTABLE_REST_SERVICE_HOST_URL =

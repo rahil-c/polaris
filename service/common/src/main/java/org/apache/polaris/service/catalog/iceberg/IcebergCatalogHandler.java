@@ -661,10 +661,8 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
     LoadTableResponse rawResponse = catalogHandlerUtils.loadTable(baseCatalog, tableIdentifier);
     Optional<LoadTableResponse> optionalLoadTableResponse =
         Optional.of(filterResponseToSnapshots(rawResponse, snapshots));
-    if (tableEntity != null
-        && XTableConversionUtils.requiresConversion(
-            callContext, optionalLoadTableResponse.get().tableMetadata().properties())) {
-      ConvertTableResponse response = RemoteXTableConvertor.getInstance().execute(tableEntity);
+    if (tableEntity != null && XTableConversionUtils.requiresConversion(callContext)) {
+      ConvertTableResponse response = RemoteXTableConvertor.getInstance().execute(tableEntity, "");
       optionalLoadTableResponse
           .get()
           .config()
@@ -774,10 +772,9 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
               buildLoadTableResponseWithDelegationCredentials(
                       tableIdentifier, tableMetadata, actionsRequested, snapshots)
                   .build());
-      if (tableEntity != null
-          && XTableConversionUtils.requiresConversion(
-              callContext, optionalLoadTableResponse.get().tableMetadata().properties())) {
-        ConvertTableResponse response = RemoteXTableConvertor.getInstance().execute(tableEntity);
+      if (tableEntity != null && XTableConversionUtils.requiresConversion(callContext)) {
+        ConvertTableResponse response =
+            RemoteXTableConvertor.getInstance().execute(tableEntity, "");
         optionalLoadTableResponse
             .get()
             .config()

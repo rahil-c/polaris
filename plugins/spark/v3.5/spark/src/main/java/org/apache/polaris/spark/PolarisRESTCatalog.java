@@ -234,6 +234,25 @@ public class PolarisRESTCatalog implements PolarisCatalog, Closeable {
                 pathGenerator.genericTable(identifier),
                 null,
                 LoadGenericTableRESTResponse.class,
+                Map.of(), // need to pass a query param here saying load as specific-format etc
+                ErrorHandlers.tableErrorHandler());
+
+    return response.getTable();
+  }
+
+  @Override
+  public GenericTable loadGenericTable(TableIdentifier identifier, String enabledReadTableFormat) {
+    Endpoint.check(endpoints, PolarisEndpoints.V1_LOAD_GENERIC_TABLE);
+    LoadGenericTableRESTResponse response =
+        restClient
+            .withAuthSession(this.catalogAuth)
+            .get(
+                pathGenerator.genericTable(identifier),
+                Map.of(
+                    "enabledReadTableFormat",
+                    enabledReadTableFormat), // need to pass a query param here saying load as
+                // specific-format etc
+                LoadGenericTableRESTResponse.class,
                 Map.of(),
                 ErrorHandlers.tableErrorHandler());
 

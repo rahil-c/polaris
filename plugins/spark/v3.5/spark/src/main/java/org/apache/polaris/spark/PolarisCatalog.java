@@ -29,6 +29,8 @@ public interface PolarisCatalog {
 
   GenericTable loadGenericTable(TableIdentifier identifier);
 
+  GenericTable loadGenericTable(TableIdentifier identifier, String enabledReadTableFormat);
+
   boolean dropGenericTable(TableIdentifier identifier);
 
   GenericTable createGenericTable(

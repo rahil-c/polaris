@@ -68,10 +68,16 @@ public class PolarisCatalogUtils {
    */
   public static Table loadSparkTable(GenericTable genericTable) {
     SparkSession sparkSession = SparkSession.active();
+
+    // will need to either modifty the generic table format to be the requested format here.
     TableProvider provider =
         DataSource.lookupDataSourceV2(genericTable.getFormat(), sparkSession.sessionState().conf())
             .get();
+
+    // ok damn so this thing is actually looking for location itself, so will need to overwrite that
+    // in response tbh, or maybe not lets see
     Map<String, String> properties = genericTable.getProperties();
+    // main question can location be path to the base path or does it need to be metadata folder.
     boolean hasLocationClause = properties.get(TableCatalog.PROP_LOCATION) != null;
     boolean hasPathClause = properties.get(TABLE_PATH_KEY) != null;
     Map<String, String> tableProperties = Maps.newHashMap();

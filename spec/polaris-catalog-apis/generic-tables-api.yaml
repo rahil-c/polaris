@@ -116,6 +116,12 @@ paths:
         Load a generic table from the catalog under the given namespace.
       
         The response contains all table information passed during create.
+      parameters:
+        - name: enabledReadTableFormat
+          in: query
+          required: false
+          schema:
+            type: string
 
       responses:
         200:

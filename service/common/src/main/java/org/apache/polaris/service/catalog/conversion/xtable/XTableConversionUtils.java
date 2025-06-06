@@ -18,9 +18,6 @@
  */
 package org.apache.polaris.service.catalog.conversion.xtable;
 
-import static org.apache.polaris.service.catalog.conversion.xtable.XTableConvertorConfigurations.ENABLED_READ_TABLE_FORMATS_KEY;
-
-import java.util.Map;
 import org.apache.polaris.core.config.FeatureConfiguration;
 import org.apache.polaris.core.context.CallContext;
 
@@ -28,14 +25,13 @@ public class XTableConversionUtils {
 
   private XTableConversionUtils() {}
 
-  public static boolean requiresConversion(
-      CallContext context, Map<String, String> tableProperties) {
+  public static boolean requiresConversion(CallContext context) {
     boolean conversionServiceEnabled =
         context
             .getPolarisCallContext()
             .getConfigurationStore()
             .getConfiguration(
                 context.getPolarisCallContext(), FeatureConfiguration.ENABLE_XTABLE_REST_SERVICE);
-    return conversionServiceEnabled && tableProperties.containsKey(ENABLED_READ_TABLE_FORMATS_KEY);
+    return conversionServiceEnabled;
   }
 }

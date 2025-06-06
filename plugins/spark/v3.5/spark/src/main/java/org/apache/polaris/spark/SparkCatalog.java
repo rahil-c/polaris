@@ -145,6 +145,15 @@ public class SparkCatalog
   }
 
   @Override
+  public Table loadTable(Identifier ident, String version) throws NoSuchTableException {
+    try {
+      return this.icebergsSparkCatalog.loadTable(ident);
+    } catch (NoSuchTableException e) {
+      return this.polarisSparkCatalog.loadTable(ident);
+    }
+  }
+
+  @Override
   public Table createTable(
       Identifier ident, StructType schema, Transform[] transforms, Map<String, String> properties)
       throws TableAlreadyExistsException, NoSuchNamespaceException {

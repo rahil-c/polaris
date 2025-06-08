@@ -712,8 +712,7 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
   public Optional<LoadTableResponse> loadTableIfStale(
       TableIdentifier tableIdentifier, IfNoneMatch ifNoneMatch, String snapshots) {
     PolarisAuthorizableOperation op = PolarisAuthorizableOperation.LOAD_TABLE;
-    authorizeBasicTableLikeOperationOrThrow(
-        op, PolarisEntitySubType.ANY_SUBTYPE, tableIdentifier);
+    authorizeBasicTableLikeOperationOrThrow(op, PolarisEntitySubType.ANY_SUBTYPE, tableIdentifier);
 
     if (ifNoneMatch != null) {
       // Perform freshness-aware table loading if caller specified ifNoneMatch.

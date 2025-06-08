@@ -712,7 +712,7 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
       TableIdentifier tableIdentifier, IfNoneMatch ifNoneMatch, String snapshots) {
     PolarisAuthorizableOperation op = PolarisAuthorizableOperation.LOAD_TABLE;
     authorizeBasicTableLikeOperationOrThrow(
-        op, PolarisEntitySubType.ICEBERG_TABLE, tableIdentifier);
+        op, PolarisEntitySubType.ANY_SUBTYPE, tableIdentifier);
 
     if (ifNoneMatch != null) {
       // Perform freshness-aware table loading if caller specified ifNoneMatch.
@@ -737,6 +737,7 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
     Optional<LoadTableResponse> maybeConversionResponse =
         loadTableViaGenericTableIfApplicable(tableIdentifier);
     if (maybeConversionResponse.isPresent()) {
+      System.out.println("#### found a generic table via loadTable");
       return maybeConversionResponse;
     } else {
       LoadTableResponse rawResponse = catalogHandlerUtils.loadTable(baseCatalog, tableIdentifier);

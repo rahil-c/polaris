@@ -262,6 +262,11 @@ public class IcebergCatalog extends BaseMetastoreViewCatalog
 
     tableDefaultProperties =
         PropertyUtil.propertiesWithPrefix(properties, CatalogProperties.TABLE_DEFAULT_PREFIX);
+    this.catalogFileIO = loadFileIO(ioImplClassName, properties);
+    if (this.catalogFileIO == null) {
+      LOGGER.error("Failed to initialize catalogFileIO");
+    }
+
   }
 
   public void setMetaStoreManager(PolarisMetaStoreManager newMetaStoreManager) {

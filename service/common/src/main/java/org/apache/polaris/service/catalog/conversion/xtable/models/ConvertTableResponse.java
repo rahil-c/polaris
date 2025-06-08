@@ -10,12 +10,12 @@ import lombok.Getter;
 @Builder
 public class ConvertTableResponse {
 
-  @JsonProperty("convertedTables")
+  @JsonProperty("converted-tables")
   private final List<ConvertedTable> convertedTables;
 
   @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
   public ConvertTableResponse(
-      @JsonProperty("convertedTables") List<ConvertedTable> convertedTables) {
+      @JsonProperty("converted-tables") List<ConvertedTable> convertedTables) {
     this.convertedTables = convertedTables;
   }
 }

@@ -655,6 +655,7 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
     if (tableLikeEntity == null) {
       return Optional.empty();
     } else if (tableLikeEntity.getSubType() == PolarisEntitySubType.GENERIC_TABLE) {
+      System.out.println("#### found it!");
       TableConverter tableConverter =
           tableConverterRegistry.getConverter(TableConversionUtils.FORMAT_ICEBERG);
       if (tableConverter == null) {
@@ -737,7 +738,6 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
     Optional<LoadTableResponse> maybeConversionResponse =
         loadTableViaGenericTableIfApplicable(tableIdentifier);
     if (maybeConversionResponse.isPresent()) {
-      System.out.println("#### found a generic table via loadTable");
       return maybeConversionResponse;
     } else {
       LoadTableResponse rawResponse = catalogHandlerUtils.loadTable(baseCatalog, tableIdentifier);

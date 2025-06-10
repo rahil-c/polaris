@@ -42,8 +42,8 @@ import org.apache.spark.sql.util.CaseInsensitiveStringMap;
  */
 public class PolarisSparkCatalog implements TableCatalog {
 
-  private PolarisCatalog polarisCatalog = null;
-  private String catalogName = null;
+  protected PolarisCatalog polarisCatalog = null;
+  protected String catalogName = null;
 
   public PolarisSparkCatalog(PolarisCatalog polarisCatalog) {
     this.polarisCatalog = polarisCatalog;
@@ -64,8 +64,9 @@ public class PolarisSparkCatalog implements TableCatalog {
     try {
       GenericTable genericTable =
           this.polarisCatalog.loadGenericTable(Spark3Util.identifierToTableIdentifier(identifier));
-      return PolarisCatalogUtils.loadSparkTable(genericTable);
-    } catch (org.apache.iceberg.exceptions.NoSuchTableException e) {
+      return PolarisCatalogUtils.loadSparkTable(genericTable, identifier);
+    } catch (
+        org.apache.iceberg.exceptions.NoSuchTableException e) { // idk why this an icberg exception
       throw new NoSuchTableException(identifier);
     }
   }
@@ -82,7 +83,7 @@ public class PolarisSparkCatalog implements TableCatalog {
       GenericTable genericTable =
           this.polarisCatalog.createGenericTable(
               Spark3Util.identifierToTableIdentifier(identifier), format, null, properties);
-      return PolarisCatalogUtils.loadSparkTable(genericTable);
+      return PolarisCatalogUtils.loadSparkTable(genericTable, identifier);
     } catch (AlreadyExistsException e) {
       throw new TableAlreadyExistsException(identifier);
     }

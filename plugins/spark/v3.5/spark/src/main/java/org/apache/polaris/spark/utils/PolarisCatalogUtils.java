@@ -20,21 +20,26 @@ package org.apache.polaris.spark.utils;
 
 import com.google.common.collect.Maps;
 import java.lang.reflect.Field;
+import java.util.Locale;
 import java.util.Map;
 import org.apache.iceberg.CachingCatalog;
 import org.apache.iceberg.catalog.Catalog;
 import org.apache.iceberg.rest.RESTCatalog;
 import org.apache.iceberg.rest.RESTSessionCatalog;
 import org.apache.iceberg.rest.auth.OAuth2Util;
+import org.apache.iceberg.spark.Spark3Util;
 import org.apache.iceberg.spark.SparkCatalog;
 import org.apache.polaris.service.types.GenericTable;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.connector.catalog.Identifier;
 import org.apache.spark.sql.connector.catalog.Table;
 import org.apache.spark.sql.connector.catalog.TableCatalog;
 import org.apache.spark.sql.connector.catalog.TableProvider;
 import org.apache.spark.sql.execution.datasources.DataSource;
 import org.apache.spark.sql.execution.datasources.v2.DataSourceV2Utils;
+import org.apache.spark.sql.hudi.catalog.HoodieInternalV2Table;
 import org.apache.spark.sql.util.CaseInsensitiveStringMap;
+import scala.Option;
 
 public class PolarisCatalogUtils {
   public static final String TABLE_PROVIDER_KEY = "provider";
@@ -48,6 +53,10 @@ public class PolarisCatalogUtils {
   /** Check whether the table provider is delta. */
   public static boolean useDelta(String provider) {
     return "delta".equalsIgnoreCase(provider);
+  }
+
+  public static boolean useHudi(String provider) {
+    return "hudi".equalsIgnoreCase(provider);
   }
 
   /**
@@ -64,10 +73,24 @@ public class PolarisCatalogUtils {
    * Load spark table using DataSourceV2.
    *
    * @return V2Table if DataSourceV2 is available for the table format. For delta table, it returns
-   *     DeltaTableV2.
+   *     DeltaTableV2. For hudi it should return HoodieInternalV2Table
    */
-  public static Table loadSparkTable(GenericTable genericTable) {
+  public static Table loadSparkTable(GenericTable genericTable, Identifier identifier) {
     SparkSession sparkSession = SparkSession.active();
+    if (genericTable.getFormat().toLowerCase(Locale.getDefault()).equals("hudi")) {
+      Map<String, String> tableProperties = Maps.newHashMap();
+      tableProperties.putAll(genericTable.getProperties());
+      tableProperties.put(
+          TABLE_PATH_KEY, genericTable.getProperties().get(TableCatalog.PROP_LOCATION));
+      return new HoodieInternalV2Table(
+          sparkSession,
+          genericTable.getProperties().get(TableCatalog.PROP_LOCATION), // try path as well
+          scala.Option.empty(), // no CatalogTable // for now dont pass anything here
+          Option.apply(identifier.toString()),
+          new CaseInsensitiveStringMap(tableProperties));
+    }
+
+    // Hudi can not use this logic
     TableProvider provider =
         DataSource.lookupDataSourceV2(genericTable.getFormat(), sparkSession.sessionState().conf())
             .get();

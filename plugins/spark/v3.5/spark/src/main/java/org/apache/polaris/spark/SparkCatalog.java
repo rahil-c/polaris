@@ -143,7 +143,6 @@ public class SparkCatalog
     try {
       return this.icebergsSparkCatalog.loadTable(ident);
     } catch (NoSuchTableException e) {
-      // call catalog service
       return this.polarisSparkCatalog.loadTable(ident);
     }
   }

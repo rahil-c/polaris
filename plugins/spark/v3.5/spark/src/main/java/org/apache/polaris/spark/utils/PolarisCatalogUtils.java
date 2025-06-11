@@ -27,10 +27,13 @@ import org.apache.iceberg.catalog.Catalog;
 import org.apache.iceberg.rest.RESTCatalog;
 import org.apache.iceberg.rest.RESTSessionCatalog;
 import org.apache.iceberg.rest.auth.OAuth2Util;
-import org.apache.iceberg.spark.Spark3Util;
 import org.apache.iceberg.spark.SparkCatalog;
 import org.apache.polaris.service.types.GenericTable;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.catalyst.TableIdentifier;
+import org.apache.spark.sql.catalyst.analysis.NoSuchDatabaseException;
+import org.apache.spark.sql.catalyst.analysis.NoSuchTableException;
+import org.apache.spark.sql.catalyst.catalog.CatalogTable;
 import org.apache.spark.sql.connector.catalog.Identifier;
 import org.apache.spark.sql.connector.catalog.Table;
 import org.apache.spark.sql.connector.catalog.TableCatalog;
@@ -78,19 +81,31 @@ public class PolarisCatalogUtils {
   public static Table loadSparkTable(GenericTable genericTable, Identifier identifier) {
     SparkSession sparkSession = SparkSession.active();
     if (genericTable.getFormat().toLowerCase(Locale.getDefault()).equals("hudi")) {
+      // Hudi does not use table provider interface so will need to catch it here
       Map<String, String> tableProperties = Maps.newHashMap();
       tableProperties.putAll(genericTable.getProperties());
       tableProperties.put(
           TABLE_PATH_KEY, genericTable.getProperties().get(TableCatalog.PROP_LOCATION));
+
+      TableIdentifier tableIdentifier =
+          new TableIdentifier(identifier.name(), Option.apply(identifier.namespace()[0]));
+
+      CatalogTable catalogTable = null;
+      try {
+        catalogTable = sparkSession.sessionState().catalog().getTableMetadata(tableIdentifier);
+      } catch (NoSuchDatabaseException e) {
+        throw new RuntimeException(e);
+      } catch (NoSuchTableException e) {
+        System.out.println("No table currently exists, likely first table create");
+      }
+
       return new HoodieInternalV2Table(
           sparkSession,
           genericTable.getProperties().get(TableCatalog.PROP_LOCATION), // try path as well
-          scala.Option.empty(), // no CatalogTable // for now dont pass anything here
-          Option.apply(identifier.toString()),
+          Option.apply(catalogTable), // no CatalogTable // for now dont pass anything here
+          Option.apply(identifier.toString()), // this is not even used by hudi
           new CaseInsensitiveStringMap(tableProperties));
     }
-
-    // Hudi can not use this logic
     TableProvider provider =
         DataSource.lookupDataSourceV2(genericTable.getFormat(), sparkSession.sessionState().conf())
             .get();

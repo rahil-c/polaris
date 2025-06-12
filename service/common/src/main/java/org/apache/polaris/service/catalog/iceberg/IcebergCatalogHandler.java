@@ -633,14 +633,7 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
   public Optional<LoadTableResponse> loadTableIfStale(
       TableIdentifier tableIdentifier, IfNoneMatch ifNoneMatch, String snapshots) {
     PolarisAuthorizableOperation op = PolarisAuthorizableOperation.LOAD_TABLE;
-
-    try {
-      authorizeBasicTableLikeOperationOrThrow(
-          op, PolarisEntitySubType.ICEBERG_TABLE, tableIdentifier);
-    } catch (NoSuchTableException e) {
-      authorizeBasicTableLikeOperationOrThrow(
-          op, PolarisEntitySubType.GENERIC_TABLE, tableIdentifier);
-    }
+    authorizeBasicTableLikeOperationOrThrow(op, PolarisEntitySubType.ANY_SUBTYPE, tableIdentifier);
 
     IcebergTableLikeEntity tableEntity = null;
     if (ifNoneMatch != null) {
@@ -747,10 +740,7 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
       actionsRequested.add(PolarisStorageActions.WRITE);
     } catch (ForbiddenException e) {
       authorizeBasicTableLikeOperationOrThrow(
-          read, PolarisEntitySubType.ICEBERG_TABLE, tableIdentifier);
-    } catch (NoSuchTableException e) {
-      authorizeBasicTableLikeOperationOrThrow(
-          read, PolarisEntitySubType.GENERIC_TABLE, tableIdentifier);
+          read, PolarisEntitySubType.ANY_SUBTYPE, tableIdentifier);
     }
 
     PolarisResolvedPathWrapper catalogPath = resolutionManifest.getResolvedReferenceCatalogEntity();

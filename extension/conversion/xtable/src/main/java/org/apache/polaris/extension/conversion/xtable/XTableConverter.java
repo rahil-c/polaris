@@ -22,8 +22,8 @@ import io.smallrye.common.annotation.Identifier;
 import jakarta.enterprise.context.RequestScoped;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.polaris.core.entity.table.TableLikeEntity;
 import org.apache.polaris.service.conversion.TableConverter;
-import org.apache.polaris.service.types.GenericTable;
 
 @RequestScoped
 @Identifier("xtable")
@@ -31,8 +31,10 @@ public class XTableConverter implements TableConverter {
 
   // TODO convert locally
   @Override
-  public Optional<GenericTable> convert(
-      GenericTable table, Map<String, String> storageCredentials, int requestedFreshnessSeconds) {
+  public Optional<TableLikeEntity> convert(
+      TableLikeEntity table,
+      Map<String, String> storageCredentials,
+      int requestedFreshnessSeconds) {
     return null;
   }
 }

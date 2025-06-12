@@ -85,6 +85,7 @@ import org.apache.polaris.core.context.CallContext;
 import org.apache.polaris.core.entity.CatalogEntity;
 import org.apache.polaris.core.entity.PolarisEntitySubType;
 import org.apache.polaris.core.entity.table.IcebergTableLikeEntity;
+import org.apache.polaris.core.entity.table.TableLikeEntity;
 import org.apache.polaris.core.persistence.PolarisEntityManager;
 import org.apache.polaris.core.persistence.PolarisMetaStoreManager;
 import org.apache.polaris.core.persistence.PolarisResolvedPathWrapper;
@@ -104,7 +105,6 @@ import org.apache.polaris.service.conversion.TableConverter;
 import org.apache.polaris.service.conversion.TableConverterRegistry;
 import org.apache.polaris.service.http.IcebergHttpUtil;
 import org.apache.polaris.service.http.IfNoneMatch;
-import org.apache.polaris.service.types.GenericTable;
 import org.apache.polaris.service.types.NotificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -662,10 +662,9 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
         return Optional.empty();
       } else {
         int conversionSla = conversionDefaultSla();
-        Optional<GenericTable> converted =
+        Optional<TableLikeEntity> converted =
             tableConverter.convert(
-                TableConversionUtils.buildGenericTableWrapperForIceberg(
-                    tableIdentifier.name(), tableLikeEntity.getMetadataLocation()),
+                tableLikeEntity,
                 Map.of(), // TODO figure out credentials
                 conversionSla);
         if (converted.isEmpty()) {
@@ -674,7 +673,7 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
           String icebergMetadataLocation =
               converted
                   .get()
-                  .getProperties()
+                  .getPropertiesAsMap()
                   .getOrDefault(TableConversionUtils.PROPERTY_LOCATION, null);
           if (icebergMetadataLocation == null) {
             LOGGER.debug("Received a null metadata location after table conversion");

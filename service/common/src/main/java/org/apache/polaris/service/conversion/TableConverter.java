@@ -20,13 +20,13 @@ package org.apache.polaris.service.conversion;
 
 import java.util.Map;
 import java.util.Optional;
-import org.apache.polaris.service.types.GenericTable;
+import org.apache.polaris.core.entity.table.TableLikeEntity;
 
 /** Implementations are used to convert from one table format to another. */
 public interface TableConverter {
 
   /**
-   * Returns a converted version of the given {@link GenericTable}, or Optional.empty() if the table
+   * Returns a converted version of the given {@link TableLikeEntity}, or Optional.empty() if the table
    * can't be converted for some reason. The converted table should be at most
    * `requestedFreshnessSeconds` behind the source table.
    *
@@ -35,18 +35,18 @@ public interface TableConverter {
    * @param requestedFreshnessSeconds the maximum requested lag between the source table and the
    *     converted table
    */
-  Optional<GenericTable> convert(
-      GenericTable table, Map<String, String> storageCredentials, int requestedFreshnessSeconds);
+  Optional<TableLikeEntity> convert(
+      TableLikeEntity table, Map<String, String> storageCredentials, int requestedFreshnessSeconds);
 
   /**
-   * Returns a converted version of the given {@link GenericTable}, or Optional.empty() if the table
+   * Returns a converted version of the given {@link TableLikeEntity}, or Optional.empty() if the table
    * can't be converted for some reason.
    *
    * @param table the table to convert
    * @param storageCredentials
    */
-  default Optional<GenericTable> convert(
-      GenericTable table, Map<String, String> storageCredentials) {
+  default Optional<TableLikeEntity> convert(
+      TableLikeEntity table, Map<String, String> storageCredentials) {
     return convert(table, storageCredentials, 0);
   }
 }

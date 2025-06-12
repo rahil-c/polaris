@@ -22,15 +22,17 @@ import io.smallrye.common.annotation.Identifier;
 import jakarta.enterprise.context.RequestScoped;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.polaris.service.types.GenericTable;
+import org.apache.polaris.core.entity.table.TableLikeEntity;
 
 @RequestScoped
 @Identifier("default")
 public class NoneTableConverter implements TableConverter {
 
   @Override
-  public Optional<GenericTable> convert(
-      GenericTable table, Map<String, String> storageCredentials, int requestedFreshnessSeconds) {
+  public Optional<TableLikeEntity> convert(
+      TableLikeEntity table,
+      Map<String, String> storageCredentials,
+      int requestedFreshnessSeconds) {
     return Optional.empty();
   }
 }

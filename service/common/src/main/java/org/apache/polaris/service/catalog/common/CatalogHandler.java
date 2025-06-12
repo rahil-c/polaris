@@ -380,10 +380,10 @@ public abstract class CatalogHandler {
     PolarisCallContext ctx = callContext.getPolarisCallContext();
     PolarisConfigurationStore store = ctx.getConfigurationStore();
     boolean conversionServiceEnabled =
-        store.getConfiguration(ctx, FeatureConfiguration.ENABLE_XTABLE_REST_SERVICE);
+        store.getConfiguration(ctx.getRealmContext(), FeatureConfiguration.ENABLE_XTABLE_REST_SERVICE);
     if (conversionServiceEnabled) {
       String hostUrl =
-          store.getConfiguration(ctx, FeatureConfiguration.XTABLE_REST_SERVICE_HOST_URL);
+          store.getConfiguration(ctx.getRealmContext(), FeatureConfiguration.XTABLE_REST_SERVICE_HOST_URL);
       RemoteXTableConvertor.initialize(hostUrl);
     }
   }

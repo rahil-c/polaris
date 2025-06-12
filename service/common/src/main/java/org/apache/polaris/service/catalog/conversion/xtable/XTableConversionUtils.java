@@ -31,7 +31,8 @@ public class XTableConversionUtils {
     PolarisCallContext ctx = context.getPolarisCallContext();
     PolarisConfigurationStore store = ctx.getConfigurationStore();
     boolean conversionServiceEnabled =
-        store.getConfiguration(ctx.getRealmContext(), FeatureConfiguration.ENABLE_XTABLE_REST_SERVICE);
+        store.getConfiguration(
+            ctx.getRealmContext(), FeatureConfiguration.ENABLE_XTABLE_REST_SERVICE);
     return conversionServiceEnabled;
   }
 }

@@ -93,7 +93,8 @@ public final class RemoteXTableConvertor {
         sourceFormat = checkIfSupportedFormat(genericTable.getFormat());
         sourceTableName = tableEntity.getName();
         sourceTablePath = genericTable.getPropertiesAsMap().get(GENERIC_TABLE_LOCATION_KEY);
-        sourceDataPath = genericTable.getPropertiesAsMap().getOrDefault(SOURCE_DATA_PATH_KEY, sourceTablePath);
+        sourceDataPath =
+            genericTable.getPropertiesAsMap().getOrDefault(SOURCE_DATA_PATH_KEY, sourceTablePath);
         targetFormats = Arrays.asList(TableFormat.ICEBERG.name());
       }
       case IcebergTableLikeEntity icebergTable -> {

@@ -18,8 +18,6 @@
  */
 package org.apache.polaris.service.catalog.iceberg;
 
-import static org.apache.polaris.service.catalog.conversion.xtable.XTableConvertorConfigurations.TARGET_FORMAT_METADATA_PATH_KEY;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import jakarta.annotation.Nonnull;
@@ -638,10 +636,10 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
 
     try {
       authorizeBasicTableLikeOperationOrThrow(
-              op, PolarisEntitySubType.ICEBERG_TABLE, tableIdentifier);
+          op, PolarisEntitySubType.ICEBERG_TABLE, tableIdentifier);
     } catch (NoSuchTableException e) {
       authorizeBasicTableLikeOperationOrThrow(
-              op, PolarisEntitySubType.GENERIC_TABLE, tableIdentifier);
+          op, PolarisEntitySubType.GENERIC_TABLE, tableIdentifier);
     }
 
     IcebergTableLikeEntity tableEntity = null;
@@ -666,20 +664,19 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
     }
 
     Optional<LoadTableResponse> maybeConversionResponse =
-            loadTableViaGenericTableIfApplicable(tableIdentifier);
+        loadTableViaGenericTableIfApplicable(tableIdentifier);
     if (maybeConversionResponse.isPresent()) {
       return maybeConversionResponse;
     }
 
     LoadTableResponse rawResponse = catalogHandlerUtils.loadTable(baseCatalog, tableIdentifier);
     Optional<LoadTableResponse> optionalLoadTableResponse =
-            Optional.of(filterResponseToSnapshots(rawResponse, snapshots));
+        Optional.of(filterResponseToSnapshots(rawResponse, snapshots));
     return optionalLoadTableResponse;
-
   }
 
   private Optional<LoadTableResponse> loadTableViaGenericTableIfApplicable(
-          TableIdentifier tableIdentifier) {
+      TableIdentifier tableIdentifier) {
     if (!XTableConversionUtils.requiresConversion(callContext)) {
       return Optional.empty();
     }
@@ -689,31 +686,28 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
       return Optional.empty();
     } else if (tableLikeEntity.getSubType() == PolarisEntitySubType.GENERIC_TABLE) {
       RemoteXTableConvertor remoteXTableConvertor = RemoteXTableConvertor.getInstance();
-      Optional<ConvertTableResponse> optionalConvertTableResponse = Optional.ofNullable(remoteXTableConvertor.execute(tableLikeEntity));
+      Optional<ConvertTableResponse> optionalConvertTableResponse =
+          Optional.ofNullable(remoteXTableConvertor.execute(tableLikeEntity));
       if (optionalConvertTableResponse.isEmpty()) {
-          return Optional.empty();
+        return Optional.empty();
       } else {
-          String icebergMetadataLocation =
-                  optionalConvertTableResponse
-                          .get()
-                          .getConvertedTables()
-                          .get(0)
-                          .getTargetMetadataPath();
-          if (icebergMetadataLocation == null) {
-            LOGGER.debug("Received a null metadata location after table conversion");
-            return Optional.empty();
+        String icebergMetadataLocation =
+            optionalConvertTableResponse.get().getConvertedTables().get(0).getTargetMetadataPath();
+        if (icebergMetadataLocation == null) {
+          LOGGER.debug("Received a null metadata location after table conversion");
+          return Optional.empty();
+        } else {
+          if (baseCatalog instanceof IcebergCatalog icebergCatalog) {
+            TableMetadata tableMetadata = icebergCatalog.loadTableUnsafe(icebergMetadataLocation);
+            return Optional.of(
+                LoadTableResponse.builder().withTableMetadata(tableMetadata).build());
           } else {
-            if (baseCatalog instanceof IcebergCatalog icebergCatalog) {
-              TableMetadata tableMetadata = icebergCatalog.loadTableUnsafe(icebergMetadataLocation);
-              return Optional.of(
-                      LoadTableResponse.builder().withTableMetadata(tableMetadata).build());
-            } else {
-              return Optional.empty();
-            }
+            return Optional.empty();
           }
         }
       }
-      return Optional.empty();
+    }
+    return Optional.empty();
   }
 
   public LoadTableResponse loadTableWithAccessDelegation(
@@ -756,7 +750,7 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
           read, PolarisEntitySubType.ICEBERG_TABLE, tableIdentifier);
     } catch (NoSuchTableException e) {
       authorizeBasicTableLikeOperationOrThrow(
-              read, PolarisEntitySubType.GENERIC_TABLE, tableIdentifier);
+          read, PolarisEntitySubType.GENERIC_TABLE, tableIdentifier);
     }
 
     PolarisResolvedPathWrapper catalogPath = resolutionManifest.getResolvedReferenceCatalogEntity();
@@ -773,7 +767,8 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
         configurationStore.getConfiguration(
             callContext.getRealmContext(),
             catalogEntity,
-            FeatureConfiguration.ALLOW_EXTERNAL_CATALOG_CREDENTIAL_VENDING)); // TODO NOT SURE IF THIS WILL WORK
+            FeatureConfiguration
+                .ALLOW_EXTERNAL_CATALOG_CREDENTIAL_VENDING)); // TODO NOT SURE IF THIS WILL WORK
     if (catalogEntity
             .getCatalogType()
             .equals(org.apache.polaris.core.admin.model.Catalog.TypeEnum.EXTERNAL)
@@ -808,7 +803,7 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
     }
 
     Optional<LoadTableResponse> maybeConversionResponse =
-            loadTableViaGenericTableIfApplicable(tableIdentifier);
+        loadTableViaGenericTableIfApplicable(tableIdentifier);
     if (maybeConversionResponse.isPresent()) {
       return maybeConversionResponse;
     }

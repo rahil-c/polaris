@@ -30,12 +30,14 @@ import org.apache.iceberg.exceptions.AlreadyExistsException;
 import org.apache.iceberg.exceptions.NoSuchNamespaceException;
 import org.apache.iceberg.exceptions.NoSuchTableException;
 import org.apache.iceberg.exceptions.NoSuchViewException;
+import org.apache.polaris.core.PolarisCallContext;
 import org.apache.polaris.core.PolarisDiagnostics;
 import org.apache.polaris.core.auth.AuthenticatedPolarisPrincipal;
 import org.apache.polaris.core.auth.PolarisAuthorizableOperation;
 import org.apache.polaris.core.auth.PolarisAuthorizer;
 import org.apache.polaris.core.catalog.PolarisCatalogHelpers;
 import org.apache.polaris.core.config.FeatureConfiguration;
+import org.apache.polaris.core.config.PolarisConfigurationStore;
 import org.apache.polaris.core.context.CallContext;
 import org.apache.polaris.core.entity.PolarisEntitySubType;
 import org.apache.polaris.core.entity.PolarisEntityType;
@@ -375,21 +377,13 @@ public abstract class CatalogHandler {
   }
 
   protected void initializeConversionServiceIfEnabled() {
+    PolarisCallContext ctx = callContext.getPolarisCallContext();
+    PolarisConfigurationStore store = ctx.getConfigurationStore();
     boolean conversionServiceEnabled =
-        callContext
-            .getPolarisCallContext()
-            .getConfigurationStore()
-            .getConfiguration(
-                callContext.getPolarisCallContext(),
-                FeatureConfiguration.ENABLE_XTABLE_REST_SERVICE);
+        store.getConfiguration(ctx, FeatureConfiguration.ENABLE_XTABLE_REST_SERVICE);
     if (conversionServiceEnabled) {
       String hostUrl =
-          callContext
-              .getPolarisCallContext()
-              .getConfigurationStore()
-              .getConfiguration(
-                  callContext.getPolarisCallContext(),
-                  FeatureConfiguration.XTABLE_REST_SERVICE_HOST_URL);
+          store.getConfiguration(ctx, FeatureConfiguration.XTABLE_REST_SERVICE_HOST_URL);
       RemoteXTableConvertor.initialize(hostUrl);
     }
   }

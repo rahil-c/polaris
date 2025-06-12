@@ -18,24 +18,20 @@
  */
 package org.apache.polaris.service.catalog.conversion.xtable;
 
-import static org.apache.polaris.service.catalog.conversion.xtable.XTableConvertorConfigurations.ENABLED_READ_TABLE_FORMATS_KEY;
-
-import java.util.Map;
+import org.apache.polaris.core.PolarisCallContext;
 import org.apache.polaris.core.config.FeatureConfiguration;
+import org.apache.polaris.core.config.PolarisConfigurationStore;
 import org.apache.polaris.core.context.CallContext;
 
 public class XTableConversionUtils {
 
   private XTableConversionUtils() {}
 
-  public static boolean requiresConversion(
-      CallContext context) {
+  public static boolean requiresConversion(CallContext context) {
+    PolarisCallContext ctx = context.getPolarisCallContext();
+    PolarisConfigurationStore store = ctx.getConfigurationStore();
     boolean conversionServiceEnabled =
-        context
-            .getPolarisCallContext()
-            .getConfigurationStore()
-            .getConfiguration(
-                context.getPolarisCallContext(), FeatureConfiguration.ENABLE_XTABLE_REST_SERVICE);
+        store.getConfiguration(ctx, FeatureConfiguration.ENABLE_XTABLE_REST_SERVICE);
     return conversionServiceEnabled;
   }
 }

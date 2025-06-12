@@ -265,7 +265,6 @@ public class IcebergCatalog extends BaseMetastoreViewCatalog
     if (this.catalogFileIO == null) {
       LOGGER.error("Failed to initialize catalogFileIO");
     }
-
   }
 
   public void setMetaStoreManager(PolarisMetaStoreManager newMetaStoreManager) {

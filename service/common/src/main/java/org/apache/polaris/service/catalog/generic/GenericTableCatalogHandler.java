@@ -22,15 +22,12 @@ import static org.apache.polaris.service.catalog.conversion.xtable.XTableConvert
 import static org.apache.polaris.service.catalog.conversion.xtable.XTableConvertorConfigurations.TARGET_FORMAT_METADATA_PATH_KEY;
 
 import jakarta.ws.rs.core.SecurityContext;
-
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
-
 import org.apache.iceberg.catalog.Namespace;
 import org.apache.iceberg.catalog.TableIdentifier;
-import org.apache.iceberg.rest.responses.LoadTableResponse;
 import org.apache.polaris.core.auth.PolarisAuthorizableOperation;
 import org.apache.polaris.core.auth.PolarisAuthorizer;
 import org.apache.polaris.core.context.CallContext;
@@ -46,7 +43,6 @@ import org.apache.polaris.service.catalog.conversion.xtable.TableFormat;
 import org.apache.polaris.service.catalog.conversion.xtable.XTableConversionUtils;
 import org.apache.polaris.service.catalog.conversion.xtable.models.ConvertTableResponse;
 import org.apache.polaris.service.catalog.conversion.xtable.models.ConvertedTable;
-import org.apache.polaris.service.catalog.iceberg.IcebergCatalogHandler;
 import org.apache.polaris.service.types.GenericTable;
 import org.apache.polaris.service.types.ListGenericTablesResponse;
 import org.apache.polaris.service.types.LoadGenericTableResponse;
@@ -117,7 +113,7 @@ public class GenericTableCatalogHandler extends CatalogHandler {
     authorizeBasicTableLikeOperationOrThrow(op, PolarisEntitySubType.GENERIC_TABLE, identifier);
 
     Optional<LoadGenericTableResponse> maybeConversionResponse =
-            loadTableViaIcebergTableIfApplicable(identifier);
+        loadTableViaIcebergTableIfApplicable(identifier);
     if (maybeConversionResponse.isPresent()) {
       return maybeConversionResponse.get();
     }
@@ -138,7 +134,8 @@ public class GenericTableCatalogHandler extends CatalogHandler {
     return LoadGenericTableResponse.builder().setTable(loadedTable).build();
   }
 
-  private Optional<LoadGenericTableResponse> loadTableViaIcebergTableIfApplicable(TableIdentifier tableIdentifier) {
+  private Optional<LoadGenericTableResponse> loadTableViaIcebergTableIfApplicable(
+      TableIdentifier tableIdentifier) {
     if (!XTableConversionUtils.requiresConversion(callContext)) {
       return Optional.empty();
     }
@@ -148,18 +145,22 @@ public class GenericTableCatalogHandler extends CatalogHandler {
       return Optional.empty();
     } else if (tableLikeEntity.getSubType() == PolarisEntitySubType.ICEBERG_TABLE) {
       RemoteXTableConvertor remoteXTableConvertor = RemoteXTableConvertor.getInstance();
-      Optional<ConvertTableResponse> optionalConvertTableResponse = Optional.ofNullable(remoteXTableConvertor.execute(tableLikeEntity));
+      Optional<ConvertTableResponse> optionalConvertTableResponse =
+          Optional.ofNullable(remoteXTableConvertor.execute(tableLikeEntity));
       if (optionalConvertTableResponse.isEmpty()) {
         return Optional.empty();
       } else {
-        ConvertedTable convertedTable = optionalConvertTableResponse.get().getConvertedTables().get(0);
+        ConvertedTable convertedTable =
+            optionalConvertTableResponse.get().getConvertedTables().get(0);
         if (convertedTable.getTargetMetadataPath() == null) {
           LOGGER.debug("Received a null target-metadata-path after table conversion");
           return Optional.empty();
         } else {
           Map<String, String> genericTableProps = new HashMap<>();
-          genericTableProps.put(TARGET_FORMAT_METADATA_PATH_KEY, convertedTable.getTargetMetadataPath());
-          GenericTable genericTable = GenericTable.builder()
+          genericTableProps.put(
+              TARGET_FORMAT_METADATA_PATH_KEY, convertedTable.getTargetMetadataPath());
+          GenericTable genericTable =
+              GenericTable.builder()
                   .setFormat(convertedTable.getTargetFormat())
                   .setName(tableIdentifier.name())
                   .setProperties(genericTableProps)

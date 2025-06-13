@@ -60,14 +60,6 @@ public class QuarkusTableConverterRegistry implements TableConverterRegistry {
                             .value(),
                     Function.identity()));
 
-    // TODO remove debug logging
-    System.out.println("#### beans:");
-    beansById.entrySet().stream()
-        .forEach(e -> System.out.println("#### " + e.getKey() + " -> " + e.getValue()));
-    System.out.println("#### config:");
-    config.converters().entrySet().stream()
-        .forEach(e -> System.out.println("#### " + e.getKey() + " -> " + e.getValue()));
-
     config
         .converters()
         .forEach(

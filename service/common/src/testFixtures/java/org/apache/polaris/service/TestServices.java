@@ -61,6 +61,7 @@ import org.apache.polaris.service.context.catalog.CallContextCatalogFactory;
 import org.apache.polaris.service.context.catalog.PolarisCallContextCatalogFactory;
 import org.apache.polaris.service.conversion.TableConverter;
 import org.apache.polaris.service.conversion.TableConverterRegistry;
+import org.apache.polaris.service.conversion.TableFormat;
 import org.apache.polaris.service.events.PolarisEventListener;
 import org.apache.polaris.service.events.TestPolarisEventListener;
 import org.apache.polaris.service.persistence.InMemoryPolarisMetaStoreManagerFactory;
@@ -196,7 +197,7 @@ public record TestServices(
       TableConverterRegistry tableConverterRegistry =
           new TableConverterRegistry() {
             @Override
-            public TableConverter getConverter(String format) {
+            public TableConverter getConverter(TableFormat format) {
               return null;
             }
           };

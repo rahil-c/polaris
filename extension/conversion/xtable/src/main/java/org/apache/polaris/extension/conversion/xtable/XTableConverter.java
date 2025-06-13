@@ -19,6 +19,7 @@
 package org.apache.polaris.extension.conversion.xtable;
 
 import io.smallrye.common.annotation.Identifier;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.RequestScoped;
 import java.util.Map;
 import java.util.Optional;
@@ -28,7 +29,7 @@ import org.apache.polaris.service.conversion.TableFormat;
 import org.apache.polaris.service.types.GenericTable;
 import org.apache.xtable.conversion.ConversionController;
 
-@RequestScoped
+@ApplicationScoped
 @Identifier("xtable")
 public class XTableConverter implements TableConverter {
 
@@ -49,7 +50,7 @@ public class XTableConverter implements TableConverter {
       TableFormat targetFormat,
       Map<String, String> storageCredentials,
       int requestedFreshnessSeconds) {
-    //
+    // TODO fix pseudocode:
     //    SourceTable sourceTable =
     //        new SourceTable(
     //            table.getName(),

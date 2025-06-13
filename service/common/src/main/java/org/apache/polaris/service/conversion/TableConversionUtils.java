@@ -25,7 +25,6 @@ import org.apache.polaris.service.types.GenericTable;
 /** A collection of utility member and methods related to table conversion. */
 public class TableConversionUtils {
 
-  public static String FORMAT_ICEBERG = "iceberg";
   public static String PROPERTY_LOCATION = "location";
 
   public static GenericTable convertToGenericTable(Table icebergTable) {
@@ -33,13 +32,13 @@ public class TableConversionUtils {
     properties.put(PROPERTY_LOCATION, icebergTable.location());
 
     return new GenericTable(
-        icebergTable.name(), FORMAT_ICEBERG, "Iceberg table " + icebergTable.name(), properties);
+        icebergTable.name(), TableFormat.ICEBERG.toString(), "Iceberg table " + icebergTable.name(), properties);
   }
 
   public static GenericTable buildGenericTableWrapperForIceberg(
       String tableName, String metadataLocation) {
     HashMap<String, String> properties = new HashMap<>();
     properties.put(PROPERTY_LOCATION, metadataLocation);
-    return new GenericTable(tableName, FORMAT_ICEBERG, "Iceberg table " + tableName, properties);
+    return new GenericTable(tableName, TableFormat.ICEBERG.toString(), "Iceberg table " + tableName, properties);
   }
 }

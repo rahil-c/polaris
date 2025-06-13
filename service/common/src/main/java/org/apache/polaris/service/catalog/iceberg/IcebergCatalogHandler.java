@@ -100,7 +100,6 @@ import org.apache.polaris.service.catalog.SupportsNotifications;
 import org.apache.polaris.service.catalog.common.CatalogHandler;
 import org.apache.polaris.service.config.ReservedProperties;
 import org.apache.polaris.service.context.catalog.CallContextCatalogFactory;
-import org.apache.polaris.service.conversion.TableConversionUtils;
 import org.apache.polaris.service.conversion.TableConverter;
 import org.apache.polaris.service.conversion.TableConverterRegistry;
 import org.apache.polaris.service.http.IcebergHttpUtil;
@@ -655,8 +654,9 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
     if (tableLikeEntity == null) {
       return Optional.empty();
     } else if (tableLikeEntity.getSubType() == PolarisEntitySubType.GENERIC_TABLE) {
-      TableConverter tableConverter =
-          tableConverterRegistry.getConverter(TableConversionUtils.FORMAT_ICEBERG);
+      //TODO this is not working
+
+      TableConverter tableConverter = tableConverterRegistry.getConverter("iceberg");
       tableConverter.initialize("tableConvertor", Map.of());
       if (tableConverter == null) {
         return Optional.empty();
@@ -674,7 +674,7 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
               converted
                   .get()
                   .getPropertiesAsMap()
-                  .getOrDefault(TableConversionUtils.PROPERTY_LOCATION, null);
+                  .getOrDefault("location", null);
           if (icebergMetadataLocation == null) {
             LOGGER.debug("Received a null metadata location after table conversion");
             return Optional.empty();
@@ -776,11 +776,11 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
       // TODO: Refactor to have a boolean-return version of the helpers so we can fallthrough
       // easily.
       authorizeBasicTableLikeOperationOrThrow(
-          write, PolarisEntitySubType.ICEBERG_TABLE, tableIdentifier);
+          write, PolarisEntitySubType.ANY_SUBTYPE, tableIdentifier);
       actionsRequested.add(PolarisStorageActions.WRITE);
     } catch (ForbiddenException e) {
       authorizeBasicTableLikeOperationOrThrow(
-          read, PolarisEntitySubType.ICEBERG_TABLE, tableIdentifier);
+          read, PolarisEntitySubType.ANY_SUBTYPE, tableIdentifier);
     }
 
     PolarisResolvedPathWrapper catalogPath = resolutionManifest.getResolvedReferenceCatalogEntity();

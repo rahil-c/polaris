@@ -303,6 +303,6 @@ public class FeatureConfiguration<T> extends PolarisConfiguration<T> {
           .description(
               "The default lag that is considered acceptable between tables during"
                   + " format conversion")
-          .defaultValue(300)
+          .defaultValue(0)
           .buildFeatureConfiguration();
 }

@@ -155,7 +155,7 @@ public class FileIOFactoryTest {
     catalog.createTable(TABLE, SCHEMA);
 
     // 1. BasePolarisCatalog:doCommit: for writing the table during the creation
-    Mockito.verify(testServices.fileIOFactory(), Mockito.times(1))
+    Mockito.verify(testServices.fileIOFactory(), Mockito.times(2))
         .loadFileIO(
             Mockito.any(),
             Mockito.any(),
@@ -190,7 +190,7 @@ public class FileIOFactoryTest {
     // 1. BasePolarisCatalog:doCommit: for writing the table during the creation
     // 2. BasePolarisCatalog:doRefresh: for reading the table during the drop
     // 3. TaskFileIOSupplier:apply: for clean up metadata files and merge files
-    Mockito.verify(testServices.fileIOFactory(), Mockito.times(3))
+    Mockito.verify(testServices.fileIOFactory(), Mockito.times(4))
         .loadFileIO(
             Mockito.any(),
             Mockito.any(),

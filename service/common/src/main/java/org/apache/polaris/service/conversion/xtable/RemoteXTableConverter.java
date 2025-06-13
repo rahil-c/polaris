@@ -16,12 +16,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.polaris.service.catalog.xtable;
+package org.apache.polaris.service.conversion.xtable;
 
-import static org.apache.polaris.service.catalog.xtable.XTableConvertorConfigurations.ENABLED_READ_TABLE_FORMATS_KEY;
-import static org.apache.polaris.service.catalog.xtable.XTableConvertorConfigurations.SOURCE_DATA_PATH_KEY;
+import static org.apache.polaris.service.conversion.xtable.XTableConvertorConfigurations.ENABLED_READ_TABLE_FORMATS_KEY;
+import static org.apache.polaris.service.conversion.xtable.XTableConvertorConfigurations.SOURCE_DATA_PATH_KEY;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.smallrye.common.annotation.Identifier;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -35,13 +37,16 @@ import java.util.Optional;
 import org.apache.polaris.core.entity.table.GenericTableEntity;
 import org.apache.polaris.core.entity.table.IcebergTableLikeEntity;
 import org.apache.polaris.core.entity.table.TableLikeEntity;
-import org.apache.polaris.service.catalog.xtable.models.ConvertTableRequest;
-import org.apache.polaris.service.catalog.xtable.models.ConvertTableResponse;
-import org.apache.polaris.service.catalog.xtable.models.ConvertedTable;
 import org.apache.polaris.service.conversion.TableConverter;
+import org.apache.polaris.service.conversion.TableFormat;
+import org.apache.polaris.service.conversion.xtable.models.ConvertTableRequest;
+import org.apache.polaris.service.conversion.xtable.models.ConvertTableResponse;
+import org.apache.polaris.service.conversion.xtable.models.ConvertedTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@ApplicationScoped
+@Identifier("xtable")
 public class RemoteXTableConverter implements TableConverter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RemoteXTableConverter.class);

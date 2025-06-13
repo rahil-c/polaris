@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.polaris.service.catalog.xtable.models;
+package org.apache.polaris.service.conversion.xtable.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

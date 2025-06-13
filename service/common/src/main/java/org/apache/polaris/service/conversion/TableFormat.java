@@ -19,19 +19,29 @@
 
 package org.apache.polaris.service.conversion;
 
+import com.google.common.base.Preconditions;
+import java.util.Locale;
+
 public enum TableFormat {
-  ICEBERG("iceberg"),
-  DELTA("delta"),
-  HUDI("hudi");
+  HUDI("HUDI"),
 
-  private final String format;
+  ICEBERG("ICEBERG"),
 
-  TableFormat(String format) {
-    this.format = format;
+  DELTA("DELTA");
+
+  private final String tableFormat;
+
+  TableFormat(String tableFormat) {
+    this.tableFormat = tableFormat;
   }
 
-  @Override
-  public String toString() {
-    return format;
+  public static TableFormat fromName(String tableFormat) {
+    Preconditions.checkArgument(tableFormat != null, "tableFormat is null");
+    try {
+      return TableFormat.valueOf(tableFormat.toUpperCase(Locale.ENGLISH));
+    } catch (IllegalArgumentException e) {
+      throw new UnsupportedOperationException(
+          String.format("Unsupported tableFormat: %s", tableFormat), e);
+    }
   }
 }

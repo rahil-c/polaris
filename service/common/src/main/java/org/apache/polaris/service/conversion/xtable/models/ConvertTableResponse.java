@@ -17,31 +17,24 @@
  * under the License.
  */
 
-package org.apache.polaris.service.catalog.xtable;
+package org.apache.polaris.service.conversion.xtable.models;
 
-import com.google.common.base.Preconditions;
-import java.util.Locale;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
+import lombok.Builder;
+import lombok.Getter;
 
-public enum TableFormat {
-  HUDI("HUDI"),
+@Getter
+@Builder
+public class ConvertTableResponse {
 
-  ICEBERG("ICEBERG"),
+  @JsonProperty("converted-tables")
+  private final List<ConvertedTable> convertedTables;
 
-  DELTA("DELTA");
-
-  private final String tableFormat;
-
-  TableFormat(String tableFormat) {
-    this.tableFormat = tableFormat;
-  }
-
-  public static TableFormat fromName(String tableFormat) {
-    Preconditions.checkArgument(tableFormat != null, "tableFormat is null");
-    try {
-      return TableFormat.valueOf(tableFormat.toUpperCase(Locale.ENGLISH));
-    } catch (IllegalArgumentException e) {
-      throw new UnsupportedOperationException(
-          String.format("Unsupported tableFormat: %s", tableFormat), e);
-    }
+  @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
+  public ConvertTableResponse(
+      @JsonProperty("converted-tables") List<ConvertedTable> convertedTables) {
+    this.convertedTables = convertedTables;
   }
 }

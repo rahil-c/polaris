@@ -31,6 +31,7 @@ import org.apache.polaris.service.conversion.NoneTableConverter;
 import org.apache.polaris.service.conversion.TableConverter;
 import org.apache.polaris.service.conversion.TableConverterRegistry;
 import org.apache.polaris.service.conversion.TableFormat;
+import org.apache.polaris.service.conversion.xtable.RemoteXTableConverter;
 import org.jboss.resteasy.reactive.common.util.CaseInsensitiveMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,10 @@ public class QuarkusTableConverterRegistry implements TableConverterRegistry {
   @Inject
   @Identifier("none")
   NoneTableConverter noneTableConverter;
+
+  @Inject
+  @Identifier("xtable")
+  RemoteXTableConverter xTableConverter;
 
   @Inject
   public QuarkusTableConverterRegistry(
@@ -76,6 +81,6 @@ public class QuarkusTableConverterRegistry implements TableConverterRegistry {
   /** Load the TableConverter for a format, case-insensitive */
   @Override
   public TableConverter getConverter(TableFormat format) {
-    return converterMap.getOrDefault(format.toString(), List.of(noneTableConverter)).getFirst();
+    return converterMap.getOrDefault(format.toString(), List.of(xTableConverter)).getFirst();
   }
 }

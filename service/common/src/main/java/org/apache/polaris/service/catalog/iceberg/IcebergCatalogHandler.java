@@ -99,11 +99,11 @@ import org.apache.polaris.core.storage.AccessConfig;
 import org.apache.polaris.core.storage.PolarisStorageActions;
 import org.apache.polaris.service.catalog.SupportsNotifications;
 import org.apache.polaris.service.catalog.common.CatalogHandler;
-import org.apache.polaris.service.catalog.xtable.RemoteXTableConverter;
 import org.apache.polaris.service.config.ReservedProperties;
 import org.apache.polaris.service.context.catalog.CallContextCatalogFactory;
 import org.apache.polaris.service.conversion.TableConverter;
 import org.apache.polaris.service.conversion.TableConverterRegistry;
+import org.apache.polaris.service.conversion.TableFormat;
 import org.apache.polaris.service.http.IcebergHttpUtil;
 import org.apache.polaris.service.http.IfNoneMatch;
 import org.apache.polaris.service.types.NotificationRequest;
@@ -658,7 +658,7 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
     } else if (genericTableEntity.getSubType() == PolarisEntitySubType.GENERIC_TABLE) {
       // TODO add back registry which will load converter once working
       // foucs on interface
-      TableConverter tableConverter = new RemoteXTableConverter();
+      TableConverter tableConverter = tableConverterRegistry.getConverter(TableFormat.ICEBERG);
       tableConverter.initialize("tableConvertor", Map.of());
       if (tableConverter == null) {
         return Optional.empty();

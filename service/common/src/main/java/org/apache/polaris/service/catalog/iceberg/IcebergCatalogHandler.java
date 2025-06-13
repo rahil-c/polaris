@@ -102,6 +102,7 @@ import org.apache.polaris.service.context.catalog.CallContextCatalogFactory;
 import org.apache.polaris.service.conversion.TableConversionUtils;
 import org.apache.polaris.service.conversion.TableConverter;
 import org.apache.polaris.service.conversion.TableConverterRegistry;
+import org.apache.polaris.service.conversion.TableFormat;
 import org.apache.polaris.service.http.IcebergHttpUtil;
 import org.apache.polaris.service.http.IfNoneMatch;
 import org.apache.polaris.service.types.GenericTable;
@@ -666,6 +667,7 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
             tableConverter.convert(
                 TableConversionUtils.buildGenericTableWrapperForIceberg(
                     tableIdentifier.name(), tableLikeEntity.getMetadataLocation()),
+                TableFormat.ICEBERG,
                 Map.of(), // TODO figure out credentials
                 conversionSla);
         if (converted.isEmpty()) {

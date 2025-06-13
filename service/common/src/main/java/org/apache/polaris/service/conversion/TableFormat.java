@@ -16,24 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.apache.polaris.service.conversion;
+public enum TableFormat {
+    ICEBERG("iceberg"),
+    DELTA("delta"),
+    HUDI("hudi");
 
-import io.smallrye.common.annotation.Identifier;
-import jakarta.enterprise.context.RequestScoped;
-import java.util.Map;
-import java.util.Optional;
-import org.apache.polaris.service.types.GenericTable;
+    private final String format;
 
-@RequestScoped
-@Identifier("default")
-public class NoneTableConverter implements TableConverter {
+    TableFormat(String format) {
+        this.format = format;
+    }
 
-  @Override
-  public Optional<GenericTable> convert(
-      GenericTable table,
-      TableFormat targetFormat,
-      Map<String, String> storageCredentials,
-      int requestedFreshnessSeconds) {
-    return Optional.empty();
-  }
+    @Override
+    public String toString() {
+        return format;
+    }
 }

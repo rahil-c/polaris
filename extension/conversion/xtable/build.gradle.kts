@@ -26,7 +26,8 @@ dependencies {
 
   implementation(libs.slf4j.api)
 
-  implementation("org.apache.xtable:xtable-core_2.12:0.2.0-incubating")
+  implementation("org.apache.xtable:xtable-core_2.12:0.3.0-incubating")
+  implementation("org.apache.hadoop:hadoop-common:3.3.6")
 
   compileOnly(libs.jakarta.annotation.api)
   compileOnly(libs.jakarta.enterprise.cdi.api)

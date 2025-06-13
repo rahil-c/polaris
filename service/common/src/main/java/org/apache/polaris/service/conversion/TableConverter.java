@@ -36,7 +36,10 @@ public interface TableConverter {
    *     converted table
    */
   Optional<GenericTable> convert(
-      GenericTable table, Map<String, String> storageCredentials, int requestedFreshnessSeconds);
+      GenericTable table,
+      TableFormat targetFormat,
+      Map<String, String> storageCredentials,
+      int requestedFreshnessSeconds);
 
   /**
    * Returns a converted version of the given {@link GenericTable}, or Optional.empty() if the table
@@ -46,7 +49,7 @@ public interface TableConverter {
    * @param storageCredentials
    */
   default Optional<GenericTable> convert(
-      GenericTable table, Map<String, String> storageCredentials) {
-    return convert(table, storageCredentials, 0);
+      GenericTable table, TableFormat targetFormat, Map<String, String> storageCredentials) {
+    return convert(table, targetFormat, storageCredentials, 0);
   }
 }

@@ -41,7 +41,9 @@ public class QuarkusTableConverterRegistry implements TableConverterRegistry {
 
   private final CaseInsensitiveMap<TableConverter> converterMap = new CaseInsensitiveMap<>();
 
-  @Inject @Identifier("none") NoneTableConverter noneTableConverter;
+  @Inject
+  @Identifier("none")
+  NoneTableConverter noneTableConverter;
 
   @Inject
   public QuarkusTableConverterRegistry(
@@ -60,9 +62,11 @@ public class QuarkusTableConverterRegistry implements TableConverterRegistry {
 
     // TODO remove debug logging
     System.out.println("#### beans:");
-    beansById.entrySet().stream().forEach(e -> System.out.println("#### " + e.getKey() + " -> " + e.getValue()));
+    beansById.entrySet().stream()
+        .forEach(e -> System.out.println("#### " + e.getKey() + " -> " + e.getValue()));
     System.out.println("#### config:");
-    config.converters().entrySet().stream().forEach(e -> System.out.println("#### " + e.getKey() + " -> " + e.getValue()));
+    config.converters().entrySet().stream()
+        .forEach(e -> System.out.println("#### " + e.getKey() + " -> " + e.getValue()));
 
     config
         .converters()

@@ -90,6 +90,12 @@ dependencies {
 
   implementation(libs.microprofile.fault.tolerance.api)
 
+  // ─────────── Add Lombok here ───────────
+  compileOnly("org.projectlombok:lombok:1.18.30") // make Lombok available at compile time
+  annotationProcessor("org.projectlombok:lombok:1.18.30") // trigger Lombok’s annotation-processing
+  testCompileOnly("org.projectlombok:lombok:1.18.30")
+  testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
+
   testImplementation(platform(libs.junit.bom))
   testImplementation("org.junit.jupiter:junit-jupiter")
   testImplementation(libs.assertj.core)

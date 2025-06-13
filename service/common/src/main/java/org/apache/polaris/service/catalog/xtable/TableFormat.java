@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.polaris.extension.conversion.xtable;
+package org.apache.polaris.service.catalog.xtable;
 
 import com.google.common.base.Preconditions;
 import java.util.Locale;

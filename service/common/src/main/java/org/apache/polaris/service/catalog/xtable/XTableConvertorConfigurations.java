@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.polaris.extension.conversion.xtable;
+package org.apache.polaris.service.catalog.xtable;
 
 public class XTableConvertorConfigurations {
   private XTableConvertorConfigurations() {}

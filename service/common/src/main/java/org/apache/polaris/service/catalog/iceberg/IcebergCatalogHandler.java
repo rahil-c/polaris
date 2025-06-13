@@ -84,6 +84,7 @@ import org.apache.polaris.core.connection.iceberg.IcebergRestConnectionConfigInf
 import org.apache.polaris.core.context.CallContext;
 import org.apache.polaris.core.entity.CatalogEntity;
 import org.apache.polaris.core.entity.PolarisEntitySubType;
+import org.apache.polaris.core.entity.table.GenericTableEntity;
 import org.apache.polaris.core.entity.table.IcebergTableLikeEntity;
 import org.apache.polaris.core.entity.table.TableLikeEntity;
 import org.apache.polaris.core.persistence.PolarisEntityManager;
@@ -98,6 +99,7 @@ import org.apache.polaris.core.storage.AccessConfig;
 import org.apache.polaris.core.storage.PolarisStorageActions;
 import org.apache.polaris.service.catalog.SupportsNotifications;
 import org.apache.polaris.service.catalog.common.CatalogHandler;
+import org.apache.polaris.service.catalog.xtable.RemoteXTableConverter;
 import org.apache.polaris.service.config.ReservedProperties;
 import org.apache.polaris.service.context.catalog.CallContextCatalogFactory;
 import org.apache.polaris.service.conversion.TableConverter;
@@ -648,15 +650,15 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
       return Optional.empty();
     }
 
-    PolarisResolvedPathWrapper target = resolutionManifest.getResolvedPath(tableIdentifier);
-    IcebergTableLikeEntity tableLikeEntity = IcebergTableLikeEntity.of(target.getRawLeafEntity());
+    PolarisResolvedPathWrapper genericTarget = resolutionManifest.getResolvedPath(tableIdentifier);
+    GenericTableEntity genericTableEntity = GenericTableEntity.of(genericTarget.getRawLeafEntity());
 
-    if (tableLikeEntity == null) {
+    if (genericTableEntity == null) {
       return Optional.empty();
-    } else if (tableLikeEntity.getSubType() == PolarisEntitySubType.GENERIC_TABLE) {
-      //TODO this is not working
-
-      TableConverter tableConverter = tableConverterRegistry.getConverter("iceberg");
+    } else if (genericTableEntity.getSubType() == PolarisEntitySubType.GENERIC_TABLE) {
+      //TODO add back registry which will load converter once working
+      // foucs on interface
+      TableConverter tableConverter = new RemoteXTableConverter();
       tableConverter.initialize("tableConvertor", Map.of());
       if (tableConverter == null) {
         return Optional.empty();
@@ -664,7 +666,7 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
         int conversionSla = conversionDefaultSla();
         Optional<TableLikeEntity> converted =
             tableConverter.convert(
-                tableLikeEntity,
+                    genericTableEntity,
                 Map.of(), // TODO figure out credentials
                 conversionSla);
         if (converted.isEmpty()) {
@@ -673,8 +675,8 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
           String icebergMetadataLocation =
               converted
                   .get()
-                  .getPropertiesAsMap()
-                  .getOrDefault("location", null);
+                  .getInternalPropertiesAsMap()
+                  .getOrDefault("metadata-location", null);
           if (icebergMetadataLocation == null) {
             LOGGER.debug("Received a null metadata location after table conversion");
             return Optional.empty();

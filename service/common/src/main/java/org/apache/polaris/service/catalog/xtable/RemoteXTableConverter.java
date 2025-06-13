@@ -16,14 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.polaris.extension.conversion.xtable;
+package org.apache.polaris.service.catalog.xtable;
 
-import static org.apache.polaris.extension.conversion.xtable.XTableConvertorConfigurations.ENABLED_READ_TABLE_FORMATS_KEY;
-import static org.apache.polaris.extension.conversion.xtable.XTableConvertorConfigurations.SOURCE_DATA_PATH_KEY;
+import static org.apache.polaris.service.catalog.xtable.XTableConvertorConfigurations.ENABLED_READ_TABLE_FORMATS_KEY;
+import static org.apache.polaris.service.catalog.xtable.XTableConvertorConfigurations.SOURCE_DATA_PATH_KEY;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.smallrye.common.annotation.Identifier;
-import jakarta.enterprise.context.RequestScoped;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -34,17 +33,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import org.apache.iceberg.catalog.TableIdentifier;
+import org.apache.polaris.core.entity.PolarisEntity;
 import org.apache.polaris.core.entity.table.GenericTableEntity;
 import org.apache.polaris.core.entity.table.IcebergTableLikeEntity;
 import org.apache.polaris.core.entity.table.TableLikeEntity;
-import org.apache.polaris.extension.conversion.xtable.models.ConvertTableRequest;
-import org.apache.polaris.extension.conversion.xtable.models.ConvertTableResponse;
+
+import org.apache.polaris.service.catalog.xtable.models.ConvertTableRequest;
+import org.apache.polaris.service.catalog.xtable.models.ConvertTableResponse;
+import org.apache.polaris.service.catalog.xtable.models.ConvertedTable;
 import org.apache.polaris.service.conversion.TableConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@RequestScoped
-@Identifier("xtable")
 public class RemoteXTableConverter implements TableConverter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RemoteXTableConverter.class);
@@ -54,39 +56,21 @@ public class RemoteXTableConverter implements TableConverter {
   private static final String RUN_SYNC_ENDPOINT = "/v1/conversion/table";
   private static final String GENERIC_TABLE_LOCATION_KEY = "location";
 
-  private static RemoteXTableConverter INSTANCE;
-  private final String hostUrl;
-  private final HttpClient client;
-  private final ObjectMapper mapper;
+  private String hostUrl;
+  private HttpClient client;
+  private ObjectMapper mapper;
 
-  private RemoteXTableConverter(String hostUrl, HttpClient client, ObjectMapper mapper) {
-    if (hostUrl == null || hostUrl.isBlank()) {
-      throw new IllegalArgumentException("hostUrl must be provided");
-    }
-    this.hostUrl = hostUrl;
-    this.client = client;
-    this.mapper = mapper;
-  }
+  public RemoteXTableConverter() {}
 
-  public static RemoteXTableConverter getInstance() {
-    return INSTANCE;
-  }
 
   @Override
   public void initialize(String name, Map<String, String> properties) {
-    if (INSTANCE != null) {
-      LOGGER.warn("RemoteXTableConvertor already initialized");
-      return;
-    }
-    INSTANCE =
-        new RemoteXTableConverter(
-            // TODO to revisit this
-            properties.getOrDefault("hostUrl", "http://localhost:8080"),
-            HttpClient.newBuilder()
-                .version(HttpClient.Version.HTTP_2)
-                .followRedirects(HttpClient.Redirect.NORMAL)
-                .build(),
-            new ObjectMapper());
+    this.hostUrl = properties.getOrDefault("hostUrl", "http://localhost:8080");
+    this.client = HttpClient.newBuilder()
+            .version(HttpClient.Version.HTTP_2)
+            .followRedirects(HttpClient.Redirect.NORMAL)
+            .build();
+    this.mapper = new ObjectMapper();
   }
 
   @Override
@@ -134,9 +118,9 @@ public class RemoteXTableConverter implements TableConverter {
             sourceDataPath,
             targetFormats,
             configurations);
-
-    // TODO
-    return null;
+    ConvertedTable convertedTable = convertTableResponse.getConvertedTables().get(0);
+    // at this point it just provide a table entity object to hold the metadata path
+    return Optional.of(new IcebergTableLikeEntity.Builder(tableEntity.getTableIdentifier(), convertedTable.getTargetMetadataPath()).build());
   }
 
   private ConvertTableResponse executeRunSyncRequest(

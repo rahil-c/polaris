@@ -20,22 +20,13 @@ package org.apache.polaris.extension.conversion.xtable;
 
 import io.smallrye.common.annotation.Identifier;
 import jakarta.enterprise.context.RequestScoped;
-
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.polaris.service.conversion.TableConverter;
 import org.apache.polaris.service.conversion.TableFormat;
 import org.apache.polaris.service.types.GenericTable;
-import org.apache.xtable.conversion.ConversionConfig;
 import org.apache.xtable.conversion.ConversionController;
-import org.apache.xtable.conversion.ConversionSourceProvider;
-import org.apache.xtable.conversion.SourceTable;
-import org.apache.xtable.conversion.TargetTable;
-import org.apache.xtable.model.sync.SyncMode;
 
 @RequestScoped
 @Identifier("xtable")
@@ -58,35 +49,35 @@ public class XTableConverter implements TableConverter {
       TableFormat targetFormat,
       Map<String, String> storageCredentials,
       int requestedFreshnessSeconds) {
+    //
+    //    SourceTable sourceTable =
+    //        new SourceTable(
+    //            table.getName(),
+    //            table.getFormat(),
+    //            table.getBaseLocation(),
+    //            /* dataPath= */ null,
+    //            /* namespace= */ null,
+    //            /* catalogConfig= */ null,
+    //            new Properties());
+    //
+    //    TargetTable targetTable =
+    //        new TargetTable(
+    //            table.getName(),
+    //            targetFormat.toString(),
+    //            table.getBaseLocation(),
+    //            /* dataPath= */ null,
+    //            /* namespace= */ null,
+    //            /* catalogConfig= */ null,
+    //            new Properties());
+    //
+    //    ConversionConfig conversionConfig =
+    //        ConversionConfig.builder()
+    //            .sourceTable(sourceTable)
+    //            .targetTables(List.of(targetTable))
+    //            .syncMode(SyncMode.FULL)
+    //            .build();
 
-    SourceTable sourceTable = new SourceTable(
-        table.getName(),
-        table.getFormat(),
-        table.getBaseLocation(),
-        /* dataPath = */ null,
-        /* namespace = */ null,
-        /* catalogConfig = */ null,
-        new Properties()
-      );
-
-    TargetTable targetTable = new TargetTable(
-        table.getName(),
-        targetFormat.toString(),
-        table.getBaseLocation(),
-        /* dataPath = */ null,
-        /* namespace = */ null,
-        /* catalogConfig = */ null,
-        new Properties()
-    );
-
-    ConversionConfig conversionConfig = ConversionConfig
-        .builder()
-        .sourceTable(sourceTable)
-        .targetTables(List.of(targetTable))
-        .syncMode(SyncMode.FULL)
-        .build();
-
-    conversionController.sync(conversionConfig, /* conversionSourceProvider = */ null);
-    return null;
+    //    conversionController.sync(conversionConfig, /* conversionSourceProvider= */ null);
+    return Optional.empty();
   }
 }

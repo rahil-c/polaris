@@ -38,6 +38,8 @@ public class QuarkusTableConverterRegistry implements TableConverterRegistry {
   @Inject
   public QuarkusTableConverterRegistry(
       QuarkusConverterConfig config, Instance<TableConverter> converters) {
+    converters.stream().forEach(c -> System.out.println("#### " + c.getClass().getSimpleName()));
+
     Map<String, TableConverter> beansById =
         converters.stream()
             .collect(

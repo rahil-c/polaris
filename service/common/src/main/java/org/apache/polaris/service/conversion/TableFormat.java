@@ -18,19 +18,20 @@
  */
 
 package org.apache.polaris.service.conversion;
+
 public enum TableFormat {
-    ICEBERG("iceberg"),
-    DELTA("delta"),
-    HUDI("hudi");
+  ICEBERG("iceberg"),
+  DELTA("delta"),
+  HUDI("hudi");
 
-    private final String format;
+  private final String format;
 
-    TableFormat(String format) {
-        this.format = format;
-    }
+  TableFormat(String format) {
+    this.format = format;
+  }
 
-    @Override
-    public String toString() {
-        return format;
-    }
+  @Override
+  public String toString() {
+    return format;
+  }
 }

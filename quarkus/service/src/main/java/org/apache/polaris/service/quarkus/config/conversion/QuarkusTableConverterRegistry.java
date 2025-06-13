@@ -32,13 +32,16 @@ import org.apache.polaris.service.conversion.TableConverter;
 import org.apache.polaris.service.conversion.TableConverterRegistry;
 import org.apache.polaris.service.conversion.TableFormat;
 import org.jboss.resteasy.reactive.common.util.CaseInsensitiveMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class QuarkusTableConverterRegistry implements TableConverterRegistry {
+  Logger LOGGER = LoggerFactory.getLogger(QuarkusTableConverterRegistry.class);
 
   private final CaseInsensitiveMap<TableConverter> converterMap = new CaseInsensitiveMap<>();
 
-  @Inject NoneTableConverter noneTableConverter;
+  @Inject @Identifier("none") NoneTableConverter noneTableConverter;
 
   @Inject
   public QuarkusTableConverterRegistry(
@@ -55,6 +58,12 @@ public class QuarkusTableConverterRegistry implements TableConverterRegistry {
                             .value(),
                     Function.identity()));
 
+    // TODO remove debug logging
+    System.out.println("#### beans:");
+    beansById.entrySet().stream().forEach(e -> System.out.println("#### " + e.getKey() + " -> " + e.getValue()));
+    System.out.println("#### config:");
+    config.converters().entrySet().stream().forEach(e -> System.out.println("#### " + e.getKey() + " -> " + e.getValue()));
+
     config
         .converters()
         .forEach(
@@ -63,7 +72,7 @@ public class QuarkusTableConverterRegistry implements TableConverterRegistry {
               if (converter != null) {
                 converterMap.put(key, List.of(converter));
               } else {
-                throw new IllegalArgumentException("Unable to load converter: " + identifier);
+                LOGGER.error("Unable to load converter: {}", identifier);
               }
             });
   }

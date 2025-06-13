@@ -20,7 +20,6 @@ package org.apache.polaris.extension.conversion.xtable;
 
 import io.smallrye.common.annotation.Identifier;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.context.RequestScoped;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.hadoop.conf.Configuration;

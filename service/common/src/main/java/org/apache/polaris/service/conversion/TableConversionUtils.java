@@ -32,13 +32,17 @@ public class TableConversionUtils {
     properties.put(PROPERTY_LOCATION, icebergTable.location());
 
     return new GenericTable(
-        icebergTable.name(), TableFormat.ICEBERG.toString(), "Iceberg table " + icebergTable.name(), properties);
+        icebergTable.name(),
+        TableFormat.ICEBERG.toString(),
+        "Iceberg table " + icebergTable.name(),
+        properties);
   }
 
   public static GenericTable buildGenericTableWrapperForIceberg(
       String tableName, String metadataLocation) {
     HashMap<String, String> properties = new HashMap<>();
     properties.put(PROPERTY_LOCATION, metadataLocation);
-    return new GenericTable(tableName, TableFormat.ICEBERG.toString(), "Iceberg table " + tableName, properties);
+    return new GenericTable(
+        tableName, TableFormat.ICEBERG.toString(), "Iceberg table " + tableName, properties);
   }
 }

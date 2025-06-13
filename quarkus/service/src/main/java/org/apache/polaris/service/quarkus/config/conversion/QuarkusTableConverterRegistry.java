@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import org.apache.polaris.service.conversion.NoneTableConverter;
 import org.apache.polaris.service.conversion.TableConverter;
 import org.apache.polaris.service.conversion.TableConverterRegistry;
@@ -43,26 +42,30 @@ public class QuarkusTableConverterRegistry implements TableConverterRegistry {
 
   @Inject
   public QuarkusTableConverterRegistry(
-      QuarkusConverterConfig config,
-      @Any Instance<TableConverter> converters) {
+      QuarkusConverterConfig config, @Any Instance<TableConverter> converters) {
     Map<String, TableConverter> beansById =
-      converters.stream()
-        .collect(
-          Collectors.toMap(
-            converter -> converter.getClass().getSuperclass().getAnnotation(Identifier.class).value(),
-            Function.identity()));
+        converters.stream()
+            .collect(
+                Collectors.toMap(
+                    converter ->
+                        converter
+                            .getClass()
+                            .getSuperclass()
+                            .getAnnotation(Identifier.class)
+                            .value(),
+                    Function.identity()));
 
     config
-      .converters()
-      .forEach(
-        (key, identifier) -> {
-          TableConverter converter = beansById.get(identifier);
-          if (converter != null) {
-            converterMap.put(key, List.of(converter));
-          } else {
-            throw new IllegalArgumentException("Unable to load converter: " + identifier);
-          }
-        });
+        .converters()
+        .forEach(
+            (key, identifier) -> {
+              TableConverter converter = beansById.get(identifier);
+              if (converter != null) {
+                converterMap.put(key, List.of(converter));
+              } else {
+                throw new IllegalArgumentException("Unable to load converter: " + identifier);
+              }
+            });
   }
 
   /** Load the TableConverter for a format, case-insensitive */

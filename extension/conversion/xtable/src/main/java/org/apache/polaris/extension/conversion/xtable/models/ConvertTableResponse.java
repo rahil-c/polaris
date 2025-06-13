@@ -16,26 +16,25 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.polaris.service.conversion;
 
-import io.smallrye.common.annotation.Identifier;
-import jakarta.enterprise.context.RequestScoped;
-import java.util.Map;
-import java.util.Optional;
-import org.apache.polaris.core.entity.table.TableLikeEntity;
+package org.apache.polaris.extension.conversion.xtable.models;
 
-@RequestScoped
-@Identifier("default")
-public class NoneTableConverter implements TableConverter {
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
+import lombok.Builder;
+import lombok.Getter;
 
-  @Override
-  public void initialize(String name, Map<String, String> properties) {}
+@Getter
+@Builder
+public class ConvertTableResponse {
 
-  @Override
-  public Optional<TableLikeEntity> convert(
-      TableLikeEntity table,
-      Map<String, String> storageCredentials,
-      int requestedFreshnessSeconds) {
-    return Optional.empty();
+  @JsonProperty("converted-tables")
+  private final List<ConvertedTable> convertedTables;
+
+  @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
+  public ConvertTableResponse(
+      @JsonProperty("converted-tables") List<ConvertedTable> convertedTables) {
+    this.convertedTables = convertedTables;
   }
 }

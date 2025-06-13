@@ -16,26 +16,32 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.polaris.service.conversion;
 
-import io.smallrye.common.annotation.Identifier;
-import jakarta.enterprise.context.RequestScoped;
-import java.util.Map;
-import java.util.Optional;
-import org.apache.polaris.core.entity.table.TableLikeEntity;
+package org.apache.polaris.extension.conversion.xtable;
 
-@RequestScoped
-@Identifier("default")
-public class NoneTableConverter implements TableConverter {
+import com.google.common.base.Preconditions;
+import java.util.Locale;
 
-  @Override
-  public void initialize(String name, Map<String, String> properties) {}
+public enum TableFormat {
+  HUDI("HUDI"),
 
-  @Override
-  public Optional<TableLikeEntity> convert(
-      TableLikeEntity table,
-      Map<String, String> storageCredentials,
-      int requestedFreshnessSeconds) {
-    return Optional.empty();
+  ICEBERG("ICEBERG"),
+
+  DELTA("DELTA");
+
+  private final String tableFormat;
+
+  TableFormat(String tableFormat) {
+    this.tableFormat = tableFormat;
+  }
+
+  public static TableFormat fromName(String tableFormat) {
+    Preconditions.checkArgument(tableFormat != null, "tableFormat is null");
+    try {
+      return TableFormat.valueOf(tableFormat.toUpperCase(Locale.ENGLISH));
+    } catch (IllegalArgumentException e) {
+      throw new UnsupportedOperationException(
+          String.format("Unsupported tableFormat: %s", tableFormat), e);
+    }
   }
 }

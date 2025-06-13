@@ -26,8 +26,16 @@ import org.apache.polaris.core.entity.table.TableLikeEntity;
 public interface TableConverter {
 
   /**
-   * Returns a converted version of the given {@link TableLikeEntity}, or Optional.empty() if the table
-   * can't be converted for some reason. The converted table should be at most
+   * Initialize a converter given a custom name and a map of converter properties.
+   *
+   * @param name a custom name for the converter
+   * @param properties converter properties
+   */
+  void initialize(String name, Map<String, String> properties);
+
+  /**
+   * Returns a converted version of the given {@link TableLikeEntity}, or Optional.empty() if the
+   * table can't be converted for some reason. The converted table should be at most
    * `requestedFreshnessSeconds` behind the source table.
    *
    * @param table the table to convert
@@ -39,8 +47,8 @@ public interface TableConverter {
       TableLikeEntity table, Map<String, String> storageCredentials, int requestedFreshnessSeconds);
 
   /**
-   * Returns a converted version of the given {@link TableLikeEntity}, or Optional.empty() if the table
-   * can't be converted for some reason.
+   * Returns a converted version of the given {@link TableLikeEntity}, or Optional.empty() if the
+   * table can't be converted for some reason.
    *
    * @param table the table to convert
    * @param storageCredentials

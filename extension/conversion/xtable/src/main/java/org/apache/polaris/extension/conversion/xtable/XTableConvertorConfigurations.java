@@ -16,25 +16,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.apache.polaris.extension.conversion.xtable;
 
-import io.smallrye.common.annotation.Identifier;
-import jakarta.enterprise.context.RequestScoped;
-import java.util.Map;
-import java.util.Optional;
-import org.apache.polaris.core.entity.table.TableLikeEntity;
-import org.apache.polaris.service.conversion.TableConverter;
+public class XTableConvertorConfigurations {
+  private XTableConvertorConfigurations() {}
 
-@RequestScoped
-@Identifier("xtable")
-public class XTableConverter implements TableConverter {
-
-  // TODO convert locally
-  @Override
-  public Optional<TableLikeEntity> convert(
-      TableLikeEntity table,
-      Map<String, String> storageCredentials,
-      int requestedFreshnessSeconds) {
-    return null;
-  }
+  public static final String SOURCE_TABLE_PATH_KEY = "source-table-path";
+  public static final String SOURCE_DATA_PATH_KEY = "source-data-path";
+  public static final String SOURCE_TABLE_CONFIGURATIONS = "source-table-configurations";
+  public static final String ENABLED_READ_TABLE_FORMATS_KEY = "enabled-read-table-formats";
+  public static final String TARGET_FORMAT_METADATA_PATH_KEY = "target-metadata-path";
 }

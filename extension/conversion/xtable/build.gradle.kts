@@ -26,8 +26,6 @@ dependencies {
 
   implementation(libs.slf4j.api)
 
-  implementation("org.apache.xtable:xtable-core_2.12:0.2.0-incubating")
-
   compileOnly(libs.jakarta.annotation.api)
   compileOnly(libs.jakarta.enterprise.cdi.api)
   compileOnly(libs.jakarta.inject.api)
@@ -37,6 +35,14 @@ dependencies {
   compileOnly(platform(libs.jackson.bom))
   compileOnly("com.fasterxml.jackson.core:jackson-annotations")
   compileOnly("com.fasterxml.jackson.core:jackson-core")
+  compileOnly("com.fasterxml.jackson.core:jackson-databind")
+  compileOnly("com.google.guava:guava:32.1.3-jre")
+
+  // ─────────── Add Lombok here ───────────
+  compileOnly("org.projectlombok:lombok:1.18.30") // make Lombok available at compile time
+  annotationProcessor("org.projectlombok:lombok:1.18.30") // trigger Lombok’s annotation-processing
+  testCompileOnly("org.projectlombok:lombok:1.18.30")
+  testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
 }
 
 description = "Implements table conversion via XTable"

@@ -52,6 +52,8 @@ dependencies {
     api(project(":polaris-quarkus-service"))
     api(project(":polaris-quarkus-spark-tests"))
 
+    api(project(":polaris-conversion-xtable"))
+
     api(project(":polaris-tests"))
   }
 }

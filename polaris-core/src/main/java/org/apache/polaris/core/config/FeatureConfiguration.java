@@ -287,4 +287,22 @@ public class FeatureConfiguration<T> extends PolarisConfiguration<T> {
                   + "This should only be set to 'true' for tests!")
           .defaultValue(false)
           .buildFeatureConfiguration();
+
+  public static final FeatureConfiguration<Boolean> TABLE_CONVERSION_CONVERT_ON_READ =
+      PolarisConfiguration.<Boolean>builder()
+          .key("TABLE_CONVERSION_CONVERT_ON_READ")
+          .description(
+              "If true, table conversion may trigger when reading a table in a different format"
+                  + " than the one it was written with")
+          .defaultValue(true)
+          .buildFeatureConfiguration();
+
+  public static final FeatureConfiguration<Integer> TABLE_CONVERSION_DEFAULT_SLA_SECONDS =
+      PolarisConfiguration.<Integer>builder()
+          .key("TABLE_CONVERSION_DEFAULT_SLA_SECONDS")
+          .description(
+              "The default lag that is considered acceptable between tables during"
+                  + " format conversion")
+          .defaultValue(0)
+          .buildFeatureConfiguration();
 }

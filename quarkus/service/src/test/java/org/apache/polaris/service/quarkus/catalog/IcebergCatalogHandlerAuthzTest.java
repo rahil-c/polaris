@@ -70,6 +70,7 @@ import org.apache.polaris.service.catalog.io.DefaultFileIOFactory;
 import org.apache.polaris.service.config.RealmEntityManagerFactory;
 import org.apache.polaris.service.context.catalog.CallContextCatalogFactory;
 import org.apache.polaris.service.context.catalog.PolarisCallContextCatalogFactory;
+import org.apache.polaris.service.conversion.TableConverterRegistry;
 import org.apache.polaris.service.http.IfNoneMatch;
 import org.apache.polaris.service.quarkus.admin.PolarisAuthzTestBase;
 import org.apache.polaris.service.types.NotificationRequest;
@@ -105,7 +106,8 @@ public class IcebergCatalogHandlerAuthzTest extends PolarisAuthzTestBase {
         catalogName,
         polarisAuthorizer,
         reservedProperties,
-        catalogHandlerUtils);
+        catalogHandlerUtils,
+        Mockito.mock(TableConverterRegistry.class));
   }
 
   /**
@@ -246,7 +248,8 @@ public class IcebergCatalogHandlerAuthzTest extends PolarisAuthzTestBase {
             CATALOG_NAME,
             polarisAuthorizer,
             reservedProperties,
-            catalogHandlerUtils);
+            catalogHandlerUtils,
+            Mockito.mock(TableConverterRegistry.class));
 
     // a variety of actions are all disallowed because the principal's credentials must be rotated
     doTestInsufficientPrivileges(
@@ -281,7 +284,8 @@ public class IcebergCatalogHandlerAuthzTest extends PolarisAuthzTestBase {
             CATALOG_NAME,
             polarisAuthorizer,
             reservedProperties,
-            catalogHandlerUtils);
+            catalogHandlerUtils,
+            Mockito.mock(TableConverterRegistry.class));
 
     doTestSufficientPrivilegeSets(
         List.of(Set.of(PolarisPrivilege.NAMESPACE_LIST)),

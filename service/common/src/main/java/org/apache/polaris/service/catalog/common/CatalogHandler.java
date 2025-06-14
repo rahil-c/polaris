@@ -43,6 +43,7 @@ import org.apache.polaris.core.persistence.PolarisResolvedPathWrapper;
 import org.apache.polaris.core.persistence.resolver.PolarisResolutionManifest;
 import org.apache.polaris.core.persistence.resolver.ResolverPath;
 import org.apache.polaris.core.persistence.resolver.ResolverStatus;
+import org.apache.polaris.service.conversion.TableConverterRegistry;
 import org.apache.polaris.service.types.PolicyIdentifier;
 
 /**
@@ -58,10 +59,10 @@ public abstract class CatalogHandler {
   protected final PolarisEntityManager entityManager;
   protected final String catalogName;
   protected final PolarisAuthorizer authorizer;
-
   protected final CallContext callContext;
   protected final AuthenticatedPolarisPrincipal authenticatedPrincipal;
   protected final SecurityContext securityContext;
+  protected final TableConverterRegistry tableConverterRegistry;
 
   public CatalogHandler(
       CallContext callContext,
@@ -69,6 +70,16 @@ public abstract class CatalogHandler {
       SecurityContext securityContext,
       String catalogName,
       PolarisAuthorizer authorizer) {
+    this(callContext, entityManager, securityContext, catalogName, authorizer, null);
+  }
+
+  public CatalogHandler(
+      CallContext callContext,
+      PolarisEntityManager entityManager,
+      SecurityContext securityContext,
+      String catalogName,
+      PolarisAuthorizer authorizer,
+      TableConverterRegistry tableConverterRegistry) {
     this.callContext = callContext;
     this.entityManager = entityManager;
     this.catalogName = catalogName;
@@ -83,6 +94,7 @@ public abstract class CatalogHandler {
     this.authenticatedPrincipal =
         (AuthenticatedPolarisPrincipal) securityContext.getUserPrincipal();
     this.authorizer = authorizer;
+    this.tableConverterRegistry = tableConverterRegistry;
   }
 
   /** Initialize the catalog once authorized. Called after all `authorize...` methods. */

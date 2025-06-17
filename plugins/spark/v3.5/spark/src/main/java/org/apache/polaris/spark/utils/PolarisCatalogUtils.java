@@ -42,11 +42,14 @@ import org.apache.spark.sql.execution.datasources.DataSource;
 import org.apache.spark.sql.execution.datasources.v2.DataSourceV2Utils;
 import org.apache.spark.sql.hudi.catalog.HoodieInternalV2Table;
 import org.apache.spark.sql.util.CaseInsensitiveStringMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scala.Option;
 
 public class PolarisCatalogUtils {
   public static final String TABLE_PROVIDER_KEY = "provider";
   public static final String TABLE_PATH_KEY = "path";
+  private static final Logger LOG = LoggerFactory.getLogger(PolarisCatalogUtils.class);
 
   /** Check whether the table provider is iceberg. */
   public static boolean useIceberg(String provider) {
@@ -87,8 +90,12 @@ public class PolarisCatalogUtils {
       tableProperties.put(
           TABLE_PATH_KEY, genericTable.getProperties().get(TableCatalog.PROP_LOCATION));
 
-      TableIdentifier tableIdentifier =
-          new TableIdentifier(identifier.name(), Option.apply(identifier.namespace()[0]));
+      // Ensure the namespace exists in Spark's session catalog (spark_catalog)
+      // otherwise when loading the catalogTable via spark session catalog it will fail
+      // as we only have an entry inside the polaris spark catalog (quickstart_catalog)
+      String ns = String.join(".", identifier.namespace());
+      sparkSession.sql(String.format("CREATE NAMESPACE IF NOT EXISTS spark_catalog.%s", ns));
+      TableIdentifier tableIdentifier = new TableIdentifier(identifier.name(), Option.apply(ns));
 
       CatalogTable catalogTable = null;
       try {

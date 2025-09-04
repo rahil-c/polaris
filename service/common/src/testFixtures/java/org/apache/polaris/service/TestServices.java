@@ -219,8 +219,7 @@ public record TestServices(
               authorizer,
               new DefaultCatalogPrefixParser(),
               reservedProperties,
-              catalogHandlerUtils,
-              tableConverterRegistry);
+              catalogHandlerUtils);
 
       IcebergRestCatalogApi restApi = new IcebergRestCatalogApi(service);
       IcebergRestConfigurationApi restConfigurationApi = new IcebergRestConfigurationApi(service);

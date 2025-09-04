@@ -26,6 +26,7 @@ import org.apache.polaris.core.policy.content.maintenance.DataCompactionPolicyCo
 import org.apache.polaris.core.policy.content.maintenance.MetadataCompactionPolicyContent;
 import org.apache.polaris.core.policy.content.maintenance.OrphanFileRemovalPolicyContent;
 import org.apache.polaris.core.policy.content.maintenance.SnapshotExpiryPolicyContent;
+import org.apache.polaris.core.policy.content.maintenance.TableConversionPolicyContent;
 import org.apache.polaris.core.policy.exceptions.PolicyAttachException;
 import org.apache.polaris.core.policy.validator.maintenance.BaseMaintenancePolicyValidator;
 import org.slf4j.Logger;
@@ -66,6 +67,9 @@ public class PolicyValidators {
       case ORPHAN_FILE_REMOVAL:
         OrphanFileRemovalPolicyContent.fromString(policy.getContent());
         break;
+      case TABLE_CONVERSION:
+        TableConversionPolicyContent.fromString(policy.getContent());
+        break;
       default:
         throw new IllegalArgumentException("Unsupported policy type: " + type.getName());
     }
@@ -96,6 +100,7 @@ public class PolicyValidators {
       case METADATA_COMPACTION:
       case SNAPSHOT_EXPIRY:
       case ORPHAN_FILE_REMOVAL:
+      case TABLE_CONVERSION:
         return BaseMaintenancePolicyValidator.INSTANCE.canAttach(entityType, entitySubType);
 
       default:

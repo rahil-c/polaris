@@ -27,6 +27,8 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -93,7 +95,11 @@ import org.apache.polaris.core.persistence.PolarisResolvedPathWrapper;
 import org.apache.polaris.core.persistence.TransactionWorkspaceMetaStoreManager;
 import org.apache.polaris.core.persistence.dao.entity.EntitiesResult;
 import org.apache.polaris.core.persistence.dao.entity.EntityWithPath;
+import org.apache.polaris.core.persistence.dao.entity.LoadPolicyMappingsResult;
 import org.apache.polaris.core.persistence.pagination.Page;
+import org.apache.polaris.core.policy.PolicyEntity;
+import org.apache.polaris.core.policy.PredefinedPolicyTypes;
+import org.apache.polaris.core.policy.content.maintenance.TableConversionPolicyContent;
 import org.apache.polaris.core.secrets.UserSecretsManager;
 import org.apache.polaris.core.storage.AccessConfig;
 import org.apache.polaris.core.storage.PolarisStorageActions;
@@ -102,8 +108,7 @@ import org.apache.polaris.service.catalog.common.CatalogHandler;
 import org.apache.polaris.service.config.ReservedProperties;
 import org.apache.polaris.service.context.catalog.CallContextCatalogFactory;
 import org.apache.polaris.service.conversion.TableConverter;
-import org.apache.polaris.service.conversion.TableConverterRegistry;
-import org.apache.polaris.service.conversion.TableFormat;
+import org.apache.polaris.service.conversion.TableConverterFactory;
 import org.apache.polaris.service.http.IcebergHttpUtil;
 import org.apache.polaris.service.http.IfNoneMatch;
 import org.apache.polaris.service.types.NotificationRequest;
@@ -153,15 +158,8 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
       String catalogName,
       PolarisAuthorizer authorizer,
       ReservedProperties reservedProperties,
-      CatalogHandlerUtils catalogHandlerUtils,
-      TableConverterRegistry tableConverterRegistry) {
-    super(
-        callContext,
-        entityManager,
-        securityContext,
-        catalogName,
-        authorizer,
-        tableConverterRegistry);
+      CatalogHandlerUtils catalogHandlerUtils) {
+    super(callContext, entityManager, securityContext, catalogName, authorizer);
     this.metaStoreManager = metaStoreManager;
     this.userSecretsManager = userSecretsManager;
     this.catalogFactory = catalogFactory;
@@ -621,14 +619,6 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
     return IcebergTableLikeEntity.of(target.getRawLeafEntity());
   }
 
-  private boolean shouldConvertOnRead() {
-    return callContext
-        .getPolarisCallContext()
-        .getConfigurationStore()
-        .getConfiguration(
-            callContext.getRealmContext(), FeatureConfiguration.TABLE_CONVERSION_CONVERT_ON_READ);
-  }
-
   // TODO we should support overrides on a table / catalog level, but unclear
   // TODO if this should wait for StorageConfigInfo on lower-level objects or not
   private int conversionDefaultSla() {
@@ -646,49 +636,106 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
    */
   private Optional<LoadTableResponse> loadTableViaGenericTableIfApplicable(
       TableIdentifier tableIdentifier) {
-    if (!shouldConvertOnRead()) {
-      return Optional.empty();
-    }
-
     PolarisResolvedPathWrapper genericTarget = resolutionManifest.getResolvedPath(tableIdentifier);
     GenericTableEntity genericTableEntity = GenericTableEntity.of(genericTarget.getRawLeafEntity());
 
     if (genericTableEntity == null) {
       return Optional.empty();
     } else if (genericTableEntity.getSubType() == PolarisEntitySubType.GENERIC_TABLE) {
-      // TODO add back registry which will load converter once working
-      // foucs on interface
-      TableConverter tableConverter = tableConverterRegistry.getConverter(TableFormat.ICEBERG);
-      tableConverter.initialize("tableConvertor", Map.of());
-      if (tableConverter == null) {
-        return Optional.empty();
-      } else {
-        int conversionSla = conversionDefaultSla();
-        Optional<TableLikeEntity> converted =
-            tableConverter.convert(
-                genericTableEntity,
-                Map.of(), // TODO figure out credentials
-                conversionSla);
-        if (converted.isEmpty()) {
-          return Optional.empty();
-        } else {
-          String icebergMetadataLocation =
-              converted.get().getInternalPropertiesAsMap().getOrDefault("metadata-location", null);
-          if (icebergMetadataLocation == null) {
-            LOGGER.debug("Received a null metadata location after table conversion");
-            return Optional.empty();
-          } else {
-            if (baseCatalog instanceof IcebergCatalog icebergCatalog) {
-              TableMetadata tableMetadata = icebergCatalog.loadTableUnsafe(icebergMetadataLocation);
-              return Optional.of(
-                  LoadTableResponse.builder().withTableMetadata(tableMetadata).build());
-            } else {
-              return Optional.empty();
-            }
-          }
-        }
-      }
+      return tryConvertTableWithPolicy(genericTableEntity, tableIdentifier, genericTarget);
     } else {
+      return Optional.empty();
+    }
+  }
+
+  /**
+   * Attempts to convert a generic table using table conversion policies.
+   *
+   * @param genericTableEntity the generic table entity to convert
+   * @param tableIdentifier the table identifier
+   * @param genericTarget the resolved path wrapper for policy lookup
+   * @return Optional containing LoadTableResponse if conversion succeeds, empty otherwise
+   */
+  private Optional<LoadTableResponse> tryConvertTableWithPolicy(
+      GenericTableEntity genericTableEntity,
+      TableIdentifier tableIdentifier,
+      PolarisResolvedPathWrapper genericTarget) {
+
+    // Look for TABLE_CONVERSION policies on the table entity
+    LoadPolicyMappingsResult policyMappingsResult =
+        metaStoreManager.loadPoliciesOnEntityByType(
+            callContext.getPolarisCallContext(),
+            genericTarget.getRawLeafEntity(),
+            PredefinedPolicyTypes.TABLE_CONVERSION);
+
+    if (!policyMappingsResult.isSuccess() || policyMappingsResult.getEntities().isEmpty()) {
+      LOGGER.debug("No table conversion policy found for table: {}", tableIdentifier);
+      return Optional.empty();
+    }
+
+    try {
+      // for now having issues creating a policy via rest api so hardcoding this
+      // Get the first applicable conversion policy
+      PolicyEntity policy = PolicyEntity.of(policyMappingsResult.getEntities().get(0));
+      if (policy == null) {
+        LOGGER.warn("Failed to create policy entity for table: {}", tableIdentifier);
+        return Optional.empty();
+      }
+      // TODO remove this
+      // TableConversionPolicyContent policyContent =
+      // TableConversionPolicyContent.fromString(conversionPolicy.getContent());
+
+      TableConversionPolicyContent policyContent =
+          new TableConversionPolicyContent(
+              true, "xtable", Collections.singletonList("ICEBERG"), new HashMap<>());
+      if (!policyContent.enabled()) {
+        LOGGER.debug("Table conversion policy is disabled for table: {}", tableIdentifier);
+        return Optional.empty();
+      }
+
+      // Create converter based on policy configuration
+      TableConverter tableConverter =
+          TableConverterFactory.createConverter(policyContent.getConversionService());
+
+      if (tableConverter == null) {
+        LOGGER.warn(
+            "Failed to create converter for service: {}", policyContent.getConversionService());
+        return Optional.empty();
+      }
+
+      // Initialize converter with policy configurations
+      Map<String, String> converterConfig =
+          policyContent.getConfigurations() != null ? policyContent.getConfigurations() : Map.of();
+      tableConverter.initialize("policyBasedConverter", converterConfig);
+
+      int conversionSla = conversionDefaultSla();
+      Optional<TableLikeEntity> converted =
+          tableConverter.convert(
+              genericTableEntity,
+              Map.of(), // TODO figure out credentials
+              conversionSla);
+
+      if (converted.isEmpty()) {
+        LOGGER.debug("Table conversion returned empty result for table: {}", tableIdentifier);
+        return Optional.empty();
+      }
+
+      String icebergMetadataLocation =
+          converted.get().getInternalPropertiesAsMap().getOrDefault("metadata-location", null);
+      if (icebergMetadataLocation == null) {
+        LOGGER.debug("Received a null metadata location after table conversion");
+        return Optional.empty();
+      }
+
+      if (baseCatalog instanceof IcebergCatalog icebergCatalog) {
+        TableMetadata tableMetadata = icebergCatalog.loadTableUnsafe(icebergMetadataLocation);
+        return Optional.of(LoadTableResponse.builder().withTableMetadata(tableMetadata).build());
+      } else {
+        return Optional.empty();
+      }
+
+    } catch (Exception e) {
+      LOGGER.warn("Failed to process table conversion policy for table: {}", tableIdentifier, e);
       return Optional.empty();
     }
   }

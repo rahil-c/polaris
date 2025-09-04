@@ -37,8 +37,6 @@ public class TableConverterFactory {
     }
 
     switch (conversionService.toLowerCase(Locale.ROOT)) {
-      case "none":
-        return new NoneTableConverter();
       case "xtable":
       case "remote-xtable":
         return new RemoteXTableConverter();

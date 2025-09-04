@@ -45,8 +45,6 @@ import org.apache.polaris.service.conversion.xtable.models.ConvertedTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@ApplicationScoped
-@Identifier("xtable")
 public class RemoteXTableConverter implements TableConverter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RemoteXTableConverter.class);
@@ -77,12 +75,12 @@ public class RemoteXTableConverter implements TableConverter {
   public Optional<TableLikeEntity> convert(
       TableLikeEntity tableEntity,
       Map<String, String> storageCredentials,
+      List<String> targetFormats,
       int requestedFreshnessSeconds) {
     String sourceFormat;
     String sourceTableName;
     String sourceTablePath;
     String sourceDataPath;
-    List<String> targetFormats;
     Map<String, String> configurations = new HashMap<>();
 
     switch (tableEntity) {
@@ -92,7 +90,6 @@ public class RemoteXTableConverter implements TableConverter {
         sourceTablePath = genericTable.getPropertiesAsMap().get(GENERIC_TABLE_LOCATION_KEY);
         sourceDataPath =
             genericTable.getPropertiesAsMap().getOrDefault(SOURCE_DATA_PATH_KEY, sourceTablePath);
-        targetFormats = Arrays.asList(TableFormat.ICEBERG.name());
       }
       case IcebergTableLikeEntity icebergTable -> {
         sourceFormat = TableFormat.ICEBERG.name();

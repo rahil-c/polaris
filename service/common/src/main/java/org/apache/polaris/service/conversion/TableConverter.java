@@ -18,6 +18,8 @@
  */
 package org.apache.polaris.service.conversion;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.polaris.core.entity.table.TableLikeEntity;
@@ -44,7 +46,7 @@ public interface TableConverter {
    *     converted table
    */
   Optional<TableLikeEntity> convert(
-      TableLikeEntity table, Map<String, String> storageCredentials, int requestedFreshnessSeconds);
+      TableLikeEntity table, Map<String, String> storageCredentials, List<String> targetFormats, int requestedFreshnessSeconds);
 
   /**
    * Returns a converted version of the given {@link TableLikeEntity}, or Optional.empty() if the
@@ -55,6 +57,6 @@ public interface TableConverter {
    */
   default Optional<TableLikeEntity> convert(
       TableLikeEntity table, Map<String, String> storageCredentials) {
-    return convert(table, storageCredentials, 0);
+    return convert(table, storageCredentials, Collections.singletonList("ICEBERG"), 0);
   }
 }

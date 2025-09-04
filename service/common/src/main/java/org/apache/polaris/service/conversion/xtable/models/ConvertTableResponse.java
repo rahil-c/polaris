@@ -28,13 +28,12 @@ import lombok.Getter;
 @Getter
 @Builder
 public class ConvertTableResponse {
-
-  @JsonProperty("converted-tables")
-  private final List<ConvertedTable> convertedTables;
+  @JsonProperty("convertedTables")
+  private List<ConvertedTable> convertedTables;
 
   @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
   public ConvertTableResponse(
-      @JsonProperty("converted-tables") List<ConvertedTable> convertedTables) {
+      @JsonProperty("convertedTables") List<ConvertedTable> convertedTables) {
     this.convertedTables = convertedTables;
   }
 }

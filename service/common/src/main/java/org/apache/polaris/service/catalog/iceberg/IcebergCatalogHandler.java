@@ -698,7 +698,7 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
           tableConverter.convert(
               genericTableEntity,
               Map.of(), // TODO figure out credentials
-              0);
+              policyContent.getTargetTableFormats(), 0);
 
       if (converted.isEmpty()) {
         LOGGER.debug("Table conversion returned empty result for table: {}", tableIdentifier);

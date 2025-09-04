@@ -619,17 +619,6 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
     return IcebergTableLikeEntity.of(target.getRawLeafEntity());
   }
 
-  // TODO we should support overrides on a table / catalog level, but unclear
-  // TODO if this should wait for StorageConfigInfo on lower-level objects or not
-  private int conversionDefaultSla() {
-    return callContext
-        .getPolarisCallContext()
-        .getConfigurationStore()
-        .getConfiguration(
-            callContext.getRealmContext(),
-            FeatureConfiguration.TABLE_CONVERSION_DEFAULT_SLA_SECONDS);
-  }
-
   /**
    * If applicable, delegates loading the table to GenericTableCatalogHandler Note that this method
    * needs to be called after auth checks
@@ -670,18 +659,15 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
 
     if (!policyMappingsResult.isSuccess() || policyMappingsResult.getEntities().isEmpty()) {
       LOGGER.debug("No table conversion policy found for table: {}", tableIdentifier);
-      return Optional.empty();
+      // need to comment this out for now.
+      //return Optional.empty();
     }
 
     try {
       // for now having issues creating a policy via rest api so hardcoding this
       // Get the first applicable conversion policy
-      PolicyEntity policy = PolicyEntity.of(policyMappingsResult.getEntities().get(0));
-      if (policy == null) {
-        LOGGER.warn("Failed to create policy entity for table: {}", tableIdentifier);
-        return Optional.empty();
-      }
-      // TODO remove this
+      //
+      //PolicyEntity policy = PolicyEntity.of(policyMappingsResult.getEntities().get(0));
       // TableConversionPolicyContent policyContent =
       // TableConversionPolicyContent.fromString(conversionPolicy.getContent());
 
@@ -708,12 +694,11 @@ public class IcebergCatalogHandler extends CatalogHandler implements AutoCloseab
           policyContent.getConfigurations() != null ? policyContent.getConfigurations() : Map.of();
       tableConverter.initialize("policyBasedConverter", converterConfig);
 
-      int conversionSla = conversionDefaultSla();
       Optional<TableLikeEntity> converted =
           tableConverter.convert(
               genericTableEntity,
               Map.of(), // TODO figure out credentials
-              conversionSla);
+              0);
 
       if (converted.isEmpty()) {
         LOGGER.debug("Table conversion returned empty result for table: {}", tableIdentifier);
